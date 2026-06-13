@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>需求工作台</title>
+    <link rel="stylesheet" href="index.css">
+  </head>
+  <body>
+    <div class="workbench-shell">
+      <header class="toolbar">
+        <div class="toolbar-meta">
+          <span class="toolbar-label">需求工作台</span>
+          <span id="updated-at" class="toolbar-updated"></span>
+          <span id="build-at" class="toolbar-updated"></span>
+        </div>
+        <div class="toolbar-actions">
+          <button id="refresh-data" type="button">刷新页面数据</button>
+          <label class="auto-refresh">
+            <input id="auto-refresh" type="checkbox">
+            30 秒自动刷新
+          </label>
+        </div>
+      </header>
+
+      <main class="layout">
+        <section class="summary-grid">
+          <section class="panel chart-panel">
+            <div class="panel-head compact">
+              <h2>总进度</h2>
+            </div>
+            <div class="overall-progress" id="overall-progress"></div>
+          </section>
+
+          <section class="panel chart-panel">
+            <div class="panel-head compact">
+              <h2>需求包状态</h2>
+            </div>
+            <div id="status-chart" class="status-chart"></div>
+          </section>
+
+          <section class="panel chart-panel">
+            <div class="panel-head compact">
+              <h2>需求包完成率</h2>
+            </div>
+            <div id="package-progress-chart" class="package-progress-chart"></div>
+          </section>
+        </section>
+
+        <section class="panel panel-packages">
+          <div class="panel-head">
+            <div>
+              <h2>需求包进度台</h2>
+              <p class="subtle">直接查看 AI 当前做到哪一步、由谁在做、下一步是什么。</p>
+            </div>
+            <div class="filters">
+              <label>
+                状态
+                <select id="status-filter"></select>
+              </label>
+              <label>
+                变更类型
+                <select id="change-filter"></select>
+              </label>
+            </div>
+          </div>
+          <div id="package-table" class="table-wrap"></div>
+        </section>
+
+        <section class="panel secondary-panel">
+          <div class="panel-head">
+            <div>
+              <h2>模块快照</h2>
+              <p class="subtle">模块状态、最近需求包和原型批次只保留一张轻表。</p>
+            </div>
+          </div>
+          <div id="module-table" class="table-wrap"></div>
+        </section>
+
+        <section class="panel secondary-panel">
+          <div class="panel-head">
+            <div>
+              <h2>原型批次</h2>
+              <p class="subtle">正式输入原型目录与需求批次配对展示。</p>
+            </div>
+          </div>
+          <div id="prototype-table" class="table-wrap"></div>
+        </section>
+
+        <section class="panel helper-panel">
+          <div class="panel-head compact">
+            <h2>数据说明</h2>
+          </div>
+          <div class="helper-copy">
+            <p>工作台只读展示 Markdown 事实源，正式数据仍以 `docs/需求/` 下的文档为准。</p>
+            <p>更新工作台数据：<code>node docs/工作台/scripts/build-workbench-data.js</code></p>
+            <div class="quick-links" id="quick-links"></div>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <script src="main.js"></script>
+  </body>
+</html>

@@ -1,0 +1,1113 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>专业部门反馈</title>
+    <script src="_tailwind.js"></script>
+    <link rel="stylesheet" href="_fa/all.min.css">
+    <link rel="stylesheet" href="_list-common.css">
+    <script src="js/proto-toast.js"></script>
+    <script src="js/proto-modal.js"></script>
+    <script src="js/proto-page.js"></script>
+    <script src="js/proto-pagination.js"></script>
+    <script src="js/proto-table.js"></script>
+    <script src="js/proto-data.js"></script>
+    <script src="js/proto-confirm.js"></script>
+    <style>
+        * { font-family: 'Noto Sans SC', sans-serif; box-sizing: border-box; }
+        body { background-color: #f5f7fa; color: #333; }
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; }
+        ::-webkit-scrollbar-thumb { background: #c1c1c1; border-radius: 3px; }
+        .data-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+        .data-table th { background-color: #fafafa; color: #666; font-weight: 500; padding: 12px 16px; text-align: left; border-bottom: 1px solid #e8e8e8; white-space: nowrap; user-select: none; }
+        .data-table td { padding: 12px 16px; border-bottom: 1px solid #f0f0f0; color: #333; }
+        .data-table tbody tr:hover { background-color: #fafafa; }
+        .data-table tbody tr:last-child td { border-bottom: none; }
+        .sort-icon { display: inline-flex; flex-direction: column; margin-left: 4px; vertical-align: middle; cursor: pointer; line-height: 1; }
+        .sort-icon i { font-size: 9px; line-height: 1; color: #bfbfbf; height: 6px; display: flex; align-items: center; }
+        .sort-icon i.active { color: #1890ff; }
+        .form-input { border: 1px solid #d9d9d9; border-radius: 4px; padding: 6px 12px; font-size: 14px; outline: none; transition: all 0.3s; background: #fff; }
+        .form-input:hover, .form-input:focus { border-color: #40a9ff; box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.1); }
+        .form-input::placeholder { color: #bfbfbf; }
+        .btn-primary { background-color: #1890ff; color: white; border: none; border-radius: 4px; padding: 6px 16px; font-size: 14px; cursor: pointer; transition: all 0.3s; display: inline-flex; align-items: center; gap: 6px; }
+        .btn-primary:hover { background-color: #40a9ff; }
+        .btn-primary:active { background-color: #096dd9; }
+        .btn-default { background-color: #fff; color: #666; border: 1px solid #d9d9d9; border-radius: 4px; padding: 6px 16px; font-size: 14px; cursor: pointer; transition: all 0.3s; display: inline-flex; align-items: center; gap: 6px; }
+        .btn-default:hover { color: #1890ff; border-color: #1890ff; }
+        .btn-default:active { border-color: #096dd9; color: #096dd9; }
+        .btn-text { background: none; border: none; color: #1890ff; cursor: pointer; font-size: 14px; padding: 0 4px; transition: color 0.3s; }
+        .btn-text:hover { color: #40a9ff; }
+        .link-primary { color: #1890ff; text-decoration: none; cursor: pointer; transition: color 0.3s; }
+        .link-primary:hover { color: #40a9ff; text-decoration: underline; }
+        .pagination { display: flex; align-items: center; gap: 8px; }
+        .pagination .page-item { min-width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border: 1px solid #d9d9d9; border-radius: 4px; cursor: pointer; font-size: 14px; color: #666; background: #fff; transition: all 0.3s; padding: 0 8px; }
+        .pagination .page-item:hover { border-color: #1890ff; color: #1890ff; }
+        .pagination .page-item.active { background-color: #1890ff; color: white; border-color: #1890ff; }
+        .pagination .page-item.disabled { color: #d9d9d9; cursor: not-allowed; border-color: #d9d9d9; }
+        .pagination .page-item.disabled:hover { border-color: #d9d9d9; color: #d9d9d9; }
+        .pagination .page-ellipsis { border: none; cursor: default; color: #999; }
+        .pagination .page-ellipsis:hover { border: none; color: #999; }
+        .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background-color: rgba(0, 0, 0, 0.45); display: flex; align-items: center; justify-content: center; z-index: 1000; opacity: 0; visibility: hidden; transition: all 0.3s; }
+        .modal-overlay.active { opacity: 1; visibility: visible; }
+        .modal-content { background: #fff; border-radius: 4px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15); width: 800px; max-width: 90vw; max-height: 80vh; display: flex; flex-direction: column; transform: scale(0.9); transition: transform 0.3s; }
+        .modal-overlay.active .modal-content { transform: scale(1); }
+        .modal-header { padding: 16px 24px; border-bottom: 1px solid #f0f0f0; display: flex; justify-content: space-between; align-items: center; }
+        .modal-header h3 { font-size: 16px; font-weight: 500; color: #333; margin: 0; }
+        .modal-close { background: none; border: none; font-size: 18px; color: #999; cursor: pointer; padding: 4px; line-height: 1; transition: color 0.3s; }
+        .modal-close:hover { color: #666; }
+        .modal-body { padding: 0; overflow: auto; flex: 1; }
+        .tabs { display: flex; border-bottom: 1px solid #e8e8e8; margin-bottom: 16px; }
+        .tab-item { padding: 12px 24px; cursor: pointer; font-size: 14px; color: #666; border-bottom: 2px solid transparent; margin-bottom: -1px; transition: all 0.3s; white-space: nowrap; user-select: none; }
+        .tab-item:hover { color: #1890ff; }
+        .tab-item.active { color: #1890ff; border-bottom-color: #1890ff; font-weight: 500; }
+        .toggle-switch { position: relative; width: 44px; height: 22px; background-color: #bfbfbf; border-radius: 11px; cursor: pointer; transition: background-color 0.3s; flex-shrink: 0; display: inline-block; }
+        .toggle-switch.active { background-color: #1890ff; }
+        .toggle-switch::after { content: ''; position: absolute; top: 2px; left: 2px; width: 18px; height: 18px; background-color: #fff; border-radius: 50%; transition: transform 0.3s; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .toggle-switch.active::after { transform: translateX(22px); }
+        .card { background: #fff; border-radius: 4px; box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05); }
+        .info-row { display: flex; gap: 48px; padding: 12px 0; font-size: 14px; }
+        .info-row .info-item { display: flex; gap: 8px; }
+        .info-row .info-label { color: #666; }
+        .info-row .info-value { color: #333; font-weight: 500; }
+        .status-badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 12px; font-weight: 500; }
+        .status-pending { color: #fa8c16; background: #fff7e6; border: 1px solid #ffd591; }
+        .status-submitted { color: #52c41a; background: #f6ffed; border: 1px solid #b7eb8f; }
+        .status-published { color: #1890ff; background: #e6f7ff; border: 1px solid #91d5ff; }
+        .sidebar-list { list-style: none; padding: 0; margin: 0; }
+        .sidebar-list li { padding: 12px 20px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #f0f0f0; font-size: 14px; transition: all 0.3s; user-select: none; }
+        .sidebar-list li:hover { background-color: #e6f7ff; color: #1890ff; }
+        .sidebar-list li.active { background-color: #e6f7ff; color: #1890ff; font-weight: 500; }
+        .sidebar-list li .count { font-weight: 500; }
+        .form-select { border: 1px solid #d9d9d9; border-radius: 4px; padding: 6px 28px 6px 12px; font-size: 14px; outline: none; background: #fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23999' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E") no-repeat right 8px center; appearance: none; cursor: pointer; min-width: 140px; }
+        .form-select:hover, .form-select:focus { border-color: #40a9ff; box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.1); }
+        .search-input-wrapper { position: relative; }
+        .search-input-wrapper .search-icon { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: #bfbfbf; font-size: 14px; }
+        .search-input-wrapper input { padding-left: 32px; }
+        .date-input-wrapper { position: relative; }
+        .date-input-wrapper .date-icon { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); color: #999; font-size: 14px; pointer-events: none; }
+        .page-container { display: none; }
+        .page-container.active { display: block; animation: fadeIn 0.3s ease; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .required::before { content: '*'; color: #ff4d4f; margin-right: 2px; }
+        .toast-container { position: fixed; top: 24px; left: 50%; transform: translateX(-50%); z-index: 2000; display: flex; flex-direction: column; gap: 8px; }
+        .toast { background: #fff; border-radius: 4px; padding: 12px 24px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); display: flex; align-items: center; gap: 8px; font-size: 14px; animation: slideDown 0.3s ease; }
+        .toast.success { border-left: 4px solid #52c41a; }
+        .toast.error { border-left: 4px solid #ff4d4f; }
+        .toast.info { border-left: 4px solid #1890ff; }
+        @keyframes slideDown { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
+        .detail-table th { background-color: #fafafa; font-weight: 500; color: #666; padding: 10px 12px; border: 1px solid #e8e8e8; font-size: 13px; text-align: center; user-select: none; }
+        .detail-table td { padding: 10px 12px; border: 1px solid #f0f0f0; font-size: 13px; text-align: center; }
+        .detail-table tbody tr:hover { background-color: #fafafa; }
+        .action-group { display: flex; gap: 8px; }
+        .action-group .btn-text + .btn-text::before { content: '|'; color: #e8e8e8; margin-right: 8px; }
+        .back-section { margin-bottom: 16px; }
+        .back-btn { display: inline-flex; align-items: center; gap: 6px; color: #666; cursor: pointer; font-size: 14px; padding: 6px 0; border: none; background: none; transition: color 0.3s; }
+        .back-btn:hover { color: #1890ff; }
+        .toolbar { display: flex; align-items: center; gap: 12px; padding: 12px 0; flex-wrap: wrap; }
+        .toolbar-left { display: flex; gap: 8px; }
+        .toolbar-center { flex: 1; display: flex; align-items: center; justify-content: center; gap: 8px; }
+        .toolbar-right { display: flex; gap: 8px; }
+        .number-link { color: #1890ff; cursor: pointer; font-weight: 500; transition: color 0.3s; }
+        .number-link:hover { text-decoration: underline; }
+        .page-size-select { border: 1px solid #d9d9d9; border-radius: 4px; padding: 5px 8px; font-size: 14px; outline: none; cursor: pointer; background: #fff; }
+        .jump-input { width: 50px; border: 1px solid #d9d9d9; border-radius: 4px; padding: 5px 8px; font-size: 14px; text-align: center; outline: none; }
+        .jump-input:focus { border-color: #40a9ff; box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.1); }
+        .no-data { text-align: center; padding: 48px 24px; color: #999; font-size: 14px; }
+        .no-data i { font-size: 32px; margin-bottom: 12px; color: #d9d9d9; display: block; }
+        @media (max-width: 1200px) { .info-row { flex-wrap: wrap; gap: 16px; } }
+    </style>
+<base target="_blank">
+</head>
+<body class="min-h-screen">
+    <div class="toast-container" id="toastContainer"></div>
+
+    <!-- PAGE 1: 专业部门反馈列表 -->
+    <div id="pageList" class="page-container active">
+        <div class="p-6">
+            <div class="card p-5 mb-4">
+                <div class="flex flex-wrap items-center gap-4">
+                    <div class="flex items-center gap-2">
+                        <label class="text-sm text-gray-600 whitespace-nowrap">考核周期：</label>
+                        <div class="date-input-wrapper">
+                            <input type="text" class="form-input w-48" placeholder="请选择日期" id="searchPeriod" readonly>
+                            <i class="fas fa-calendar-alt date-icon"></i>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <label class="text-sm text-gray-600 whitespace-nowrap">征集名称：</label>
+                        <div class="search-input-wrapper">
+                            <i class="fas fa-search search-icon"></i>
+                            <input type="text" class="form-input w-56" placeholder="请输入内容" id="searchName" onkeypress="if(event.key==='Enter')handleSearch()">
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <label class="text-sm text-gray-600 whitespace-nowrap">状态：</label>
+                        <select class="form-select w-40" id="searchStatus">
+                            <option value="">请选择内容</option>
+                            <option value="pending">待提交</option>
+                            <option value="submitted">已提交</option>
+                            <option value="published">已发布</option>
+                        </select>
+                    </div>
+                    <div class="flex items-center gap-3 ml-auto">
+                        <button class="btn-default" onclick="clearSearch()">
+                            <i class="fas fa-undo-alt mr-1"></i>清空条件
+                        </button>
+                        <button class="btn-primary" onclick="handleSearch()">
+                            <i class="fas fa-search"></i>搜索
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 60px; text-align: center;">序号</th>
+                            <th onclick="sortTable('period')" style="cursor: pointer;">
+                                考核周期
+                                <span class="sort-icon" id="sort-period">
+                                    <i class="fas fa-caret-up" data-dir="asc"></i>
+                                    <i class="fas fa-caret-down" data-dir="desc"></i>
+                                </span>
+                            </th>
+                            <th>征集名称</th>
+                            <th>征集模块</th>
+                            <th>专业截止时间</th>
+                            <th style="text-align: center;">基层意见数量</th>
+                            <th onclick="sortTable('status')" style="cursor: pointer; text-align: center;">
+                                状态
+                                <span class="sort-icon" id="sort-status">
+                                    <i class="fas fa-caret-up" data-dir="asc"></i>
+                                    <i class="fas fa-caret-down" data-dir="desc"></i>
+                                </span>
+                            </th>
+                            <th style="width: 120px; text-align: center;">操作</th>
+                        </tr>
+                    </thead>
+                    <tbody id="listTableBody"></tbody>
+                </table>
+
+                <div class="flex items-center justify-between px-4 py-3 border-t border-gray-100">
+                    <div class="text-sm text-gray-500">
+                        共 <span id="totalCount" class="font-medium">0</span> 项数据
+                    </div>
+                    <div class="flex items-center gap-4">
+                        <select class="page-size-select" id="pageSize" onchange="changePageSize()">
+                            <option value="10">10条/页</option>
+                            <option value="20">20条/页</option>
+                            <option value="50">50条/页</option>
+                            <option value="100">100条/页</option>
+                        </select>
+                        <div class="pagination" id="pagination"></div>
+                        <div class="flex items-center gap-2 text-sm text-gray-600">
+                            <span>跳至</span>
+                            <input type="number" class="jump-input" id="jumpPage" min="1" onkeypress="handleJump(event)">
+                            <span>页</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- PAGE 2: 填报/查看详情 -->
+    <div id="pageDetail" class="page-container">
+        <div class="p-6">
+            <div class="back-section">
+                <button class="back-btn" onclick="goBack()">
+                    <i class="fas fa-arrow-left"></i>
+                    <span>返回列表</span>
+                </button>
+            </div>
+
+            <div class="card p-5 mb-4">
+                <div class="info-row">
+                    <div class="info-item">
+                        <span class="info-label">征集周期：</span>
+                        <span class="info-value" id="detailPeriod">2026年</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">征集名称：</span>
+                        <span class="info-value" id="detailName">2026年第一轮第一批次意见征集</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">截止时间：</span>
+                        <span class="info-value" id="detailDeadline">2025-08-20 18:00:00</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">状态：</span>
+                        <span class="info-value" id="detailStatus">待提交</span>
+                    </div>
+                </div>
+                <div class="mt-4">
+                    <button class="btn-primary" id="submitBtn" onclick="handleSubmit()">
+                        <i class="fas fa-check"></i>提交
+                    </button>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="tabs px-4" id="detailTabs">
+                    <div class="tab-item active" data-tab="performance" onclick="switchTab('performance')">关键业绩指标</div>
+                    <div class="tab-item" data-tab="bonus" onclick="switchTab('bonus')">业绩争取加分</div>
+                    <div class="tab-item" data-tab="party" onclick="switchTab('party')">党建工作指标</div>
+                    <div class="tab-item" data-tab="safety" onclick="switchTab('safety')">安全工作指标</div>
+                </div>
+
+                <div class="px-4 pb-4">
+                    <div class="toolbar">
+                        <div class="toolbar-left">
+                            <button class="btn-default" onclick="handleSave()"><i class="fas fa-save mr-1"></i>保存</button>
+                            <button class="btn-default" onclick="handleImport()"><i class="fas fa-file-import mr-1"></i>数据导入</button>
+                            <button class="btn-default" onclick="handleExport()"><i class="fas fa-file-export mr-1"></i>数据导出</button>
+                        </div>
+                        <div class="toolbar-center">
+                            <span class="text-sm text-gray-600">指标体系附件：</span>
+                            <a href="#" class="link-primary text-sm" onclick="downloadAttachment()">2025年度基层单位关键业绩指标体系.pdf</a>
+                        </div>
+                        <div class="toolbar-right">
+                            <div class="search-input-wrapper">
+                                <i class="fas fa-search search-icon"></i>
+                                <input type="text" class="form-input w-48" placeholder="输入指标名称" id="detailSearchName" oninput="filterDetailTable()">
+                            </div>
+                            <select class="form-select" id="detailSearchUnit" onchange="filterDetailTable()">
+                                <option value="">反馈意见单位</option>
+                                <option value="市区公司">市区公司</option>
+                                <option value="市北公司">市北公司</option>
+                                <option value="市南公司">市南公司</option>
+                                <option value="电科院">电科院</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div id="tab-performance" class="tab-content">
+                        <table class="detail-table w-full">
+                            <thead>
+                                <tr>
+                                    <th rowspan="2" style="width: 50px;">序号</th>
+                                    <th rowspan="2">指标类别</th>
+                                    <th rowspan="2" onclick="sortDetailTable('performance', 'name')" style="cursor: pointer;">
+                                        指标名称<span class="sort-icon"><i class="fas fa-caret-up"></i><i class="fas fa-caret-down"></i></span>
+                                    </th>
+                                    <th rowspan="2">因子名称</th>
+                                    <th rowspan="2" onclick="sortDetailTable('performance', 'unit')" style="cursor: pointer;">
+                                        反馈意见单位<span class="sort-icon"><i class="fas fa-caret-up"></i><i class="fas fa-caret-down"></i></span>
+                                    </th>
+                                    <th colspan="3">意见建议</th>
+                                    <th colspan="2">意见采纳说明</th>
+                                </tr>
+                                <tr>
+                                    <th>意见分类</th>
+                                    <th>意见内容</th>
+                                    <th>原因说明</th>
+                                    <th class="required">是否采纳</th>
+                                    <th class="required">意见采纳说明</th>
+                                </tr>
+                            </thead>
+                            <tbody id="performanceBody"></tbody>
+                        </table>
+                    </div>
+
+                    <div id="tab-bonus" class="tab-content" style="display: none;">
+                        <table class="detail-table w-full">
+                            <thead>
+                                <tr>
+                                    <th rowspan="2" style="width: 50px;">序号</th>
+                                    <th rowspan="2">加分事项</th>
+                                    <th rowspan="2" onclick="sortDetailTable('bonus', 'name')" style="cursor: pointer;">
+                                        指标名称<span class="sort-icon"><i class="fas fa-caret-up"></i><i class="fas fa-caret-down"></i></span>
+                                    </th>
+                                    <th rowspan="2">因子名称/评价标准</th>
+                                    <th rowspan="2" onclick="sortDetailTable('bonus', 'unit')" style="cursor: pointer;">
+                                        反馈意见单位<span class="sort-icon"><i class="fas fa-caret-up"></i><i class="fas fa-caret-down"></i></span>
+                                    </th>
+                                    <th rowspan="2">意见建议</th>
+                                    <th rowspan="2">原因说明</th>
+                                    <th colspan="2">意见采纳说明</th>
+                                </tr>
+                                <tr>
+                                    <th class="required">是否采纳</th>
+                                    <th class="required">意见采纳说明</th>
+                                </tr>
+                            </thead>
+                            <tbody id="bonusBody"></tbody>
+                        </table>
+                    </div>
+
+                    <div id="tab-party" class="tab-content" style="display: none;">
+                        <table class="detail-table w-full">
+                            <thead>
+                                <tr>
+                                    <th rowspan="2" style="width: 50px;">序号</th>
+                                    <th rowspan="2">考核内容</th>
+                                    <th rowspan="2">考评方式</th>
+                                    <th rowspan="2" onclick="sortDetailTable('party', 'unit')" style="cursor: pointer;">
+                                        反馈意见单位<span class="sort-icon"><i class="fas fa-caret-up"></i><i class="fas fa-caret-down"></i></span>
+                                    </th>
+                                    <th rowspan="2">意见建议</th>
+                                    <th rowspan="2">原因说明</th>
+                                    <th colspan="2">意见采纳说明</th>
+                                </tr>
+                                <tr>
+                                    <th class="required">是否采纳</th>
+                                    <th class="required">意见采纳说明</th>
+                                </tr>
+                            </thead>
+                            <tbody id="partyBody"></tbody>
+                        </table>
+                    </div>
+
+                    <div id="tab-safety" class="tab-content" style="display: none;">
+                        <table class="detail-table w-full">
+                            <thead>
+                                <tr>
+                                    <th rowspan="2" style="width: 50px;">序号</th>
+                                    <th rowspan="2" onclick="sortDetailTable('safety', 'clause')" style="cursor: pointer;">
+                                        方案条款/内容/指标名称<span class="sort-icon"><i class="fas fa-caret-up"></i><i class="fas fa-caret-down"></i></span>
+                                    </th>
+                                    <th rowspan="2" onclick="sortDetailTable('safety', 'unit')" style="cursor: pointer;">
+                                        反馈意见单位<span class="sort-icon"><i class="fas fa-caret-up"></i><i class="fas fa-caret-down"></i></span>
+                                    </th>
+                                    <th rowspan="2">意见建议</th>
+                                    <th rowspan="2">原因说明</th>
+                                    <th colspan="2">意见采纳说明</th>
+                                </tr>
+                                <tr>
+                                    <th class="required">是否采纳</th>
+                                    <th class="required">意见采纳说明</th>
+                                </tr>
+                            </thead>
+                            <tbody id="safetyBody"></tbody>
+                        </table>
+                    </div>
+
+                    <div class="flex items-center justify-between mt-4 pt-3 border-t border-gray-100">
+                        <div class="text-sm text-gray-500">
+                            共 <span class="font-medium" id="detailTotalCount">0</span> 项数据
+                        </div>
+                        <div class="flex items-center gap-4">
+                            <select class="page-size-select" id="detailPageSize" onchange="changeDetailPageSize()">
+                                <option value="10">10条/页</option>
+                                <option value="20">20条/页</option>
+                                <option value="50">50条/页</option>
+                            </select>
+                            <div class="pagination" id="detailPagination"></div>
+                            <div class="flex items-center gap-2 text-sm text-gray-600">
+                                <span>跳至</span>
+                                <input type="number" class="jump-input" id="detailJumpPage" min="1" onkeypress="handleDetailJump(event)">
+                                <span>页</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: 基层意见数量 -->
+    <div class="modal-overlay" id="opinionModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>基层意见数量</h3>
+                <button class="modal-close" onclick="closeModal()"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body">
+                <div class="flex" style="min-height: 400px;">
+                    <div class="w-64 border-r border-gray-100">
+                        <ul class="sidebar-list" id="sidebarList">
+                            <li class="active" onclick="selectCategory(this, 'power')"><span>供电单位</span><span class="count">12</span></li>
+                            <li onclick="selectCategory(this, 'support')"><span>业务支撑单位</span><span class="count">7</span></li>
+                            <li onclick="selectCategory(this, 'market')"><span>市场化单位</span><span class="count">3</span></li>
+                        </ul>
+                    </div>
+                    <div class="flex-1 p-4">
+                        <table class="data-table">
+                            <thead>
+                                <tr><th style="width: 80px; text-align: center;">序号</th><th>单位名称</th></tr>
+                            </thead>
+                            <tbody id="modalTableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+
+        // ==================== FULL DATASET ====================
+        const allListData = [
+            { id: 1, period: '2026年', name: '2026年第一轮第一批次意见征集', module: '关键业绩指标、安全工作指标', deadline: '2026-02-10 18:00:00', opinionCount: 22, status: 'pending', statusText: '待提交' },
+            { id: 2, period: '2025年', name: '2025年度第二轮意见征集', module: '党建工作指标', deadline: '2025-12-31 18:00:00', opinionCount: 15, status: 'submitted', statusText: '已提交' },
+            { id: 3, period: '2025年', name: '2025年度第一轮意见征集', module: '关键业绩指标、业绩争取加分', deadline: '2025-06-30 18:00:00', opinionCount: 30, status: 'published', statusText: '已发布' },
+            { id: 4, period: '2024年', name: '2024年度第三轮意见征集', module: '安全工作指标', deadline: '2024-11-15 18:00:00', opinionCount: 18, status: 'pending', statusText: '待提交' },
+            { id: 5, period: '2024年', name: '2024年度第二轮意见征集', module: '党建工作指标、安全工作指标', deadline: '2024-08-20 18:00:00', opinionCount: 25, status: 'submitted', statusText: '已提交' },
+            { id: 6, period: '2024年', name: '2024年度第一轮意见征集', module: '关键业绩指标', deadline: '2024-03-10 18:00:00', opinionCount: 20, status: 'published', statusText: '已发布' },
+            { id: 7, period: '2023年', name: '2023年度第二轮意见征集', module: '业绩争取加分、安全工作指标', deadline: '2023-10-30 18:00:00', opinionCount: 12, status: 'pending', statusText: '待提交' },
+            { id: 8, period: '2023年', name: '2023年度第一轮意见征集', module: '关键业绩指标、党建工作指标', deadline: '2023-05-15 18:00:00', opinionCount: 28, status: 'submitted', statusText: '已提交' },
+            { id: 9, period: '2022年', name: '2022年度第二轮意见征集', module: '安全工作指标', deadline: '2022-12-01 18:00:00', opinionCount: 10, status: 'published', statusText: '已发布' },
+            { id: 10, period: '2022年', name: '2022年度第一轮意见征集', module: '关键业绩指标、业绩争取加分、党建工作指标', deadline: '2022-06-20 18:00:00', opinionCount: 35, status: 'pending', statusText: '待提交' },
+            { id: 11, period: '2021年', name: '2021年度意见征集', module: '关键业绩指标', deadline: '2021-09-10 18:00:00', opinionCount: 8, status: 'submitted', statusText: '已提交' },
+            { id: 12, period: '2021年', name: '2021年度第一轮意见征集', module: '安全工作指标、党建工作指标', deadline: '2021-03-25 18:00:00', opinionCount: 16, status: 'published', statusText: '已发布' }
+        ];
+
+        const allPerformanceData = [
+            { id: 1, category: '经营实力', name: '内模利润', factor: '内模利润', unit: '市区公司', opinionType: '指标定义', opinion: '建议调整内模利润计算口径，增加新能源业务板块', reason: '新能源业务占比逐年提升，原口径未能反映实际经营成果', adopted: false, adoptDesc: '' },
+            { id: 2, category: '经营实力', name: '营业收入', factor: '主营业务收入', unit: '市北公司', opinionType: '指标定义', opinion: '建议将综合能源服务收入纳入营业收入考核', reason: '综合能源服务已成为重要业务增长点', adopted: true, adoptDesc: '同意纳入，从2026年起执行' },
+            { id: 3, category: '经营实力', name: '内模利润', factor: '内模利润', unit: '市南公司', opinionType: '目标值', opinion: '建议下调内模利润目标值5%', reason: '受宏观经济影响，用电需求增长放缓', adopted: false, adoptDesc: '' },
+            { id: 4, category: '客户服务', name: '客户满意度', factor: '第三方测评', unit: '电科院', opinionType: '评价标准', opinion: '建议增加线上服务渠道满意度权重', reason: '线上业务办理量占比已超过60%', adopted: true, adoptDesc: '同意调整权重比例' },
+            { id: 5, category: '经营实力', name: '成本控制', factor: '单位供电成本', unit: '市区公司', opinionType: '指标定义', opinion: '建议细化成本分类，区分可控与不可控成本', reason: '更精准反映成本管控能力', adopted: false, adoptDesc: '' },
+            { id: 6, category: '创新发展', name: '数字化转型', factor: '数字化项目完成率', unit: '市北公司', opinionType: '评价标准', opinion: '建议增加数据治理质量评价维度', reason: '数据质量是数字化转型的基础', adopted: true, adoptDesc: '同意增加质量评价维度' },
+            { id: 7, category: '经营实力', name: '资产收益率', factor: 'ROA', unit: '市南公司', opinionType: '指标定义', opinion: '建议采用加权平均资产收益率', reason: '更能反映资产使用效率', adopted: false, adoptDesc: '' },
+            { id: 8, category: '客户服务', name: '供电可靠性', factor: '用户平均停电时间', unit: '电科院', opinionType: '目标值', opinion: '建议分区域设定差异化目标值', reason: '不同区域电网结构差异较大', adopted: true, adoptDesc: '同意分区域设定' },
+            { id: 9, category: '经营实力', name: '内模利润', factor: '内模利润', unit: '市区公司', opinionType: '权重', opinion: '建议提高内模利润指标权重至30%', reason: '利润是经营核心目标', adopted: false, adoptDesc: '' },
+            { id: 10, category: '创新发展', name: '科技创新', factor: '专利授权数', unit: '市北公司', opinionType: '评价标准', opinion: '建议增加发明专利占比要求', reason: '提升专利质量', adopted: true, adoptDesc: '同意增加质量要求' }
+        ];
+
+        const allBonusData = [
+            { id: 1, bonusItem: '经营实力', name: '内模利润', factor: '超额完成利润目标', unit: '市区公司', opinion: '建议超额部分按1.5倍加分', reason: '激励超额完成经营目标', adopted: false, adoptDesc: '' },
+            { id: 2, bonusItem: '客户服务', name: '客户满意度', factor: '满意度排名前列', unit: '市北公司', opinion: '建议年度排名前三额外加分', reason: '树立服务标杆', adopted: true, adoptDesc: '同意前三名分别加5/3/2分' },
+            { id: 3, bonusItem: '创新发展', name: '数字化转型', factor: '获得省部级奖项', unit: '市南公司', opinion: '建议获得省部级数字化奖项加分', reason: '鼓励创新创优', adopted: false, adoptDesc: '' },
+            { id: 4, bonusItem: '经营实力', name: '成本控制', factor: '成本节约显著', unit: '电科院', opinion: '建议成本节约率超过10%给予加分', reason: '激励降本增效', adopted: true, adoptDesc: '同意节约率超10%加3分' },
+            { id: 5, bonusItem: '党建工作', name: '党建品牌', factor: '获得省级荣誉', unit: '市区公司', opinion: '建议党建品牌获省级荣誉加分', reason: '提升党建质量', adopted: false, adoptDesc: '' }
+        ];
+
+        const allPartyData = [
+            { id: 1, content: '党委主体责任落实', method: '加项', unit: '市区公司', opinion: '建议细化主体责任考核清单', reason: '清单化管理更便于考核执行', adopted: true, adoptDesc: '同意细化清单' },
+            { id: 2, content: '党风廉政建设', method: '一票否决项', unit: '市北公司', opinion: '建议增加廉洁风险防控评价', reason: '预防为主，防控风险', adopted: false, adoptDesc: '' },
+            { id: 3, content: '基层组织建设', method: '加项', unit: '市南公司', opinion: '建议增加支部标准化建设评价', reason: '夯实基层组织基础', adopted: true, adoptDesc: '同意增加标准化评价' },
+            { id: 4, content: '意识形态工作', method: '减项', unit: '电科院', opinion: '建议增加舆情管控效果评价', reason: '完善意识形态考核维度', adopted: false, adoptDesc: '' },
+            { id: 5, content: '党员教育管理', method: '加项', unit: '市区公司', opinion: '建议增加党员培训覆盖率考核', reason: '提升党员素质', adopted: true, adoptDesc: '同意增加覆盖率指标' }
+        ];
+
+        const allSafetyData = [
+            { id: 1, clause: '发生人身伤亡事故', unit: '市区公司', opinion: '建议区分责任事故与非责任事故', reason: '更公平反映安全管理水平', adopted: true, adoptDesc: '同意区分责任认定' },
+            { id: 2, clause: '发生重大设备事故', unit: '市北公司', opinion: '建议增加设备老化因素考量', reason: '老旧设备故障率较高', adopted: false, adoptDesc: '' },
+            { id: 3, clause: '发生网络安全事件', unit: '市南公司', opinion: '建议分级分类考核安全事件', reason: '不同级别事件影响差异大', adopted: true, adoptDesc: '同意分级考核' },
+            { id: 4, clause: '发生信息安全泄露', unit: '电科院', opinion: '建议增加数据分类分级保护要求', reason: '不同数据敏感度不同', adopted: false, adoptDesc: '' },
+            { id: 5, clause: '发生交通安全事故', unit: '市区公司', opinion: '建议增加交通安全培训考核', reason: '预防为主，培训先行', adopted: true, adoptDesc: '同意增加培训考核' }
+        ];
+
+        const modalData = {
+            power: ['市区公司', '市南公司', '市北公司', '城东公司', '城西公司', '城南公司', '城北公司', '开发区公司', '高新区公司', '港区公司', '新区公司', '示范区公司'],
+            support: ['电科院', '经研院', '信通公司', '物资公司', '培训中心', '服务中心', '数据中心'],
+            market: ['综合能源公司', '电动汽车公司', '配售电公司']
+        };
+
+        // ==================== STATE ====================
+        let listData = [...allListData];
+        let currentPage = 1;
+        let pageSize = 10;
+        let sortField = null;
+        let sortDirection = 'asc';
+
+        let currentDetailId = null;
+        let currentDetailStatus = 'pending';
+        let currentTab = 'performance';
+        let detailSortField = null;
+        let detailSortDirection = 'asc';
+        let detailSearchName = '';
+        let detailSearchUnit = '';
+        let detailCurrentPage = 1;
+        let detailPageSize = 10;
+
+        // ==================== INIT ====================
+        document.addEventListener('DOMContentLoaded', function() {
+            renderListTable();
+            renderPagination();
+            renderDetailTables();
+            renderModalTable('power');
+        });
+
+        // ==================== LIST PAGE - SEARCH & SORT ====================
+        function handleSearch() {
+            const period = document.getElementById('searchPeriod').value.trim();
+            const name = document.getElementById('searchName').value.trim().toLowerCase();
+            const status = document.getElementById('searchStatus').value;
+
+            listData = allListData.filter(item => {
+                let match = true;
+                if (period && !item.period.includes(period)) match = false;
+                if (name && !item.name.toLowerCase().includes(name)) match = false;
+                if (status && item.status !== status) match = false;
+                return match;
+            });
+
+            currentPage = 1;
+            renderListTable();
+            renderPagination();
+
+            const msg = [];
+            if (period) msg.push(`周期"${period}"`);
+            if (name) msg.push(`名称"${document.getElementById('searchName').value.trim()}"`);
+            if (status) msg.push(`状态"${getStatusText(status)}"`);
+
+            if (msg.length > 0) {
+                showToast('success', `已按条件筛选：${msg.join('、')}，共找到 ${listData.length} 条记录`);
+            } else {
+                showToast('info', `显示全部 ${listData.length} 条记录`);
+            }
+        }
+
+        function getStatusText(status) {
+            const map = { pending: '待提交', submitted: '已提交', published: '已发布' };
+            return map[status] || status;
+        }
+
+        function clearSearch() {
+            document.getElementById('searchPeriod').value = '';
+            document.getElementById('searchName').value = '';
+            document.getElementById('searchStatus').value = '';
+            listData = [...allListData];
+            currentPage = 1;
+            sortField = null;
+            document.querySelectorAll('.sort-icon i').forEach(icon => icon.classList.remove('active'));
+            renderListTable();
+            renderPagination();
+            showToast('success', '已清空搜索条件，显示全部记录');
+        }
+
+        function sortTable(field) {
+            if (sortField === field) {
+                sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
+            } else {
+                sortField = field;
+                sortDirection = 'asc';
+            }
+
+            document.querySelectorAll('.sort-icon i').forEach(icon => icon.classList.remove('active'));
+            const activeIcon = document.querySelector(`#sort-${field} i[data-dir="${sortDirection}"]`);
+            if (activeIcon) activeIcon.classList.add('active');
+
+            listData.sort((a, b) => {
+                let valA = a[field];
+                let valB = b[field];
+
+                if (field === 'period') {
+                    valA = parseInt(valA) || 0;
+                    valB = parseInt(valB) || 0;
+                }
+
+                if (valA < valB) return sortDirection === 'asc' ? -1 : 1;
+                if (valA > valB) return sortDirection === 'asc' ? 1 : -1;
+                return 0;
+            });
+
+            currentPage = 1;
+            renderListTable();
+            renderPagination();
+            showToast('info', `已按"${field === 'period' ? '考核周期' : '状态'}"${sortDirection === 'asc' ? '升序' : '降序'}排列`);
+        }
+
+        function renderListTable() {
+            const tbody = document.getElementById('listTableBody');
+            const start = (currentPage - 1) * pageSize;
+            const end = start + pageSize;
+            const pageData = listData.slice(start, end);
+
+            if (pageData.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="8" class="no-data"><i class="fas fa-inbox"></i><p>暂无数据</p></td></tr>`;
+                document.getElementById('totalCount').textContent = '0';
+                return;
+            }
+
+            tbody.innerHTML = pageData.map((item, index) => {
+                const statusClass = item.status === 'pending' ? 'status-pending' : item.status === 'submitted' ? 'status-submitted' : 'status-published';
+                let actions = item.status === 'pending' 
+                    ? `<button class="btn-text" onclick="handleFill(${item.id})">填报</button><button class="btn-text" onclick="handleSubmitFromList(${item.id})">提交</button>`
+                    : `<button class="btn-text" onclick="handleView(${item.id})">查看</button>`;
+
+                return `<tr>
+                    <td style="text-align: center;">${String(start + index + 1).padStart(2, '0')}</td>
+                    <td>${item.period}</td>
+                    <td>${item.name}</td>
+                    <td>${item.module || '-'}</td>
+                    <td>${item.deadline || '-'}</td>
+                    <td style="text-align: center;"><span class="number-link" onclick="showOpinionModal(${item.id})">${item.opinionCount}</span></td>
+                    <td style="text-align: center;"><span class="status-badge ${statusClass}">${item.statusText}</span></td>
+                    <td><div class="action-group">${actions}</div></td>
+                </tr>`;
+            }).join('');
+
+            document.getElementById('totalCount').textContent = listData.length;
+        }
+
+        function renderPagination() {
+            const totalItems = listData.length;
+            const totalPages = Math.ceil(totalItems / pageSize) || 1;
+            const pagination = document.getElementById('pagination');
+
+            let html = '';
+            html += `<div class="page-item ${currentPage === 1 ? 'disabled' : ''}" onclick="goToPage(${currentPage - 1})"><i class="fas fa-chevron-left"></i></div>`;
+
+            if (totalPages <= 7) {
+                for (let i = 1; i <= totalPages; i++) {
+                    html += `<div class="page-item ${i === currentPage ? 'active' : ''}" onclick="goToPage(${i})">${i}</div>`;
+                }
+            } else {
+                html += `<div class="page-item ${1 === currentPage ? 'active' : ''}" onclick="goToPage(1)">1</div>`;
+                if (currentPage > 3) html += `<div class="page-item page-ellipsis">...</div>`;
+
+                const start = Math.max(2, currentPage - 1);
+                const end = Math.min(totalPages - 1, currentPage + 1);
+                for (let i = start; i <= end; i++) {
+                    html += `<div class="page-item ${i === currentPage ? 'active' : ''}" onclick="goToPage(${i})">${i}</div>`;
+                }
+
+                if (currentPage < totalPages - 2) html += `<div class="page-item page-ellipsis">...</div>`;
+                html += `<div class="page-item ${totalPages === currentPage ? 'active' : ''}" onclick="goToPage(${totalPages})">${totalPages}</div>`;
+            }
+
+            html += `<div class="page-item ${currentPage === totalPages ? 'disabled' : ''}" onclick="goToPage(${currentPage + 1})"><i class="fas fa-chevron-right"></i></div>`;
+            pagination.innerHTML = html;
+        }
+
+        function goToPage(page) {
+            const totalPages = Math.ceil(listData.length / pageSize) || 1;
+            if (page < 1 || page > totalPages) return;
+            currentPage = page;
+            renderListTable();
+            renderPagination();
+        }
+
+        function changePageSize() {
+            pageSize = parseInt(document.getElementById('pageSize').value);
+            currentPage = 1;
+            renderListTable();
+            renderPagination();
+            showToast('info', `已切换为每页 ${pageSize} 条`);
+        }
+
+        function handleJump(event) {
+            if (event.key === 'Enter') {
+                const page = parseInt(event.target.value);
+                const totalPages = Math.ceil(listData.length / pageSize) || 1;
+                if (page >= 1 && page <= totalPages) {
+                    goToPage(page);
+                    event.target.value = '';
+                } else {
+                    showToast('error', `请输入 1-${totalPages} 之间的页码`);
+                }
+            }
+        }
+
+        // ==================== DETAIL PAGE ====================
+        function switchTab(tabName) {
+            currentTab = tabName;
+            detailCurrentPage = 1;
+            detailSortField = null;
+            detailSearchName = '';
+            detailSearchUnit = '';
+            document.getElementById('detailSearchName').value = '';
+            document.getElementById('detailSearchUnit').value = '';
+
+            document.querySelectorAll('.tab-item').forEach(tab => tab.classList.remove('active'));
+            document.querySelector(`.tab-item[data-tab="${tabName}"]`).classList.add('active');
+            document.querySelectorAll('.tab-content').forEach(content => content.style.display = 'none');
+            document.getElementById(`tab-${tabName}`).style.display = 'block';
+
+            renderDetailTables();
+        }
+
+        function getDetailData() {
+            let data;
+            switch(currentTab) {
+                case 'performance': data = [...allPerformanceData]; break;
+                case 'bonus': data = [...allBonusData]; break;
+                case 'party': data = [...allPartyData]; break;
+                case 'safety': data = [...allSafetyData]; break;
+                default: data = [];
+            }
+
+            if (detailSearchName) {
+                const search = detailSearchName.toLowerCase();
+                data = data.filter(item => {
+                    const nameField = item.name || item.clause || item.content || '';
+                    return nameField.toLowerCase().includes(search);
+                });
+            }
+
+            if (detailSearchUnit) {
+                data = data.filter(item => item.unit === detailSearchUnit);
+            }
+
+            if (detailSortField) {
+                data.sort((a, b) => {
+                    let valA, valB;
+                    switch(detailSortField) {
+                        case 'name': valA = a.name || ''; valB = b.name || ''; break;
+                        case 'unit': valA = a.unit || ''; valB = b.unit || ''; break;
+                        case 'clause': valA = a.clause || ''; valB = b.clause || ''; break;
+                        default: valA = a[detailSortField] || ''; valB = b[detailSortField] || '';
+                    }
+                    if (valA < valB) return detailSortDirection === 'asc' ? -1 : 1;
+                    if (valA > valB) return detailSortDirection === 'asc' ? 1 : -1;
+                    return 0;
+                });
+            }
+
+            return data;
+        }
+
+        function filterDetailTable() {
+            detailSearchName = document.getElementById('detailSearchName').value.trim();
+            detailSearchUnit = document.getElementById('detailSearchUnit').value;
+            detailCurrentPage = 1;
+            renderDetailTables();
+        }
+
+        function sortDetailTable(tab, field) {
+            if (currentTab !== tab) return;
+
+            if (detailSortField === field) {
+                detailSortDirection = detailSortDirection === 'asc' ? 'desc' : 'asc';
+            } else {
+                detailSortField = field;
+                detailSortDirection = 'asc';
+            }
+
+            renderDetailTables();
+
+            const fieldNames = { name: '指标名称', unit: '反馈意见单位', clause: '方案条款' };
+            showToast('info', `已按"${fieldNames[field] || field}"${detailSortDirection === 'asc' ? '升序' : '降序'}排列`);
+        }
+
+        function renderDetailTables() {
+            const data = getDetailData();
+            const start = (detailCurrentPage - 1) * detailPageSize;
+            const end = start + detailPageSize;
+            const pageData = data.slice(start, end);
+            const totalItems = data.length;
+
+            document.getElementById('detailTotalCount').textContent = totalItems;
+
+            switch(currentTab) {
+                case 'performance': renderPerformanceTable(pageData, start); break;
+                case 'bonus': renderBonusTable(pageData, start); break;
+                case 'party': renderPartyTable(pageData, start); break;
+                case 'safety': renderSafetyTable(pageData, start); break;
+            }
+
+            renderDetailPagination(totalItems);
+        }
+
+        function renderPerformanceTable(data, startIndex) {
+            const tbody = document.getElementById('performanceBody');
+            if (data.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="10" class="no-data"><i class="fas fa-inbox"></i><p>暂无匹配数据</p></td></tr>`;
+                return;
+            }
+            tbody.innerHTML = data.map((item, index) => `<tr>
+                <td style="text-align: center;">${String(startIndex + index + 1).padStart(2, '0')}</td>
+                <td>${item.category}</td>
+                <td>${item.name}</td>
+                <td>${item.factor}</td>
+                <td>${item.unit}</td>
+                <td>${item.opinionType}</td>
+                <td style="text-align: left; max-width: 200px; overflow: hidden; text-overflow: ellipsis;">${item.opinion}</td>
+                <td style="text-align: left; max-width: 150px; overflow: hidden; text-overflow: ellipsis;">${item.reason}</td>
+                <td style="text-align: center;"><div class="toggle-switch ${item.adopted ? 'active' : ''}" onclick="toggleAdopt(this, 'performance', ${item.id})"></div></td>
+                <td><input type="text" class="form-input w-full" placeholder="输入填入内容" value="${item.adoptDesc}" onchange="updateAdoptDesc('performance', ${item.id}, this.value)" ${currentDetailStatus !== 'pending' ? 'readonly' : ''}></td>
+            </tr>`).join('');
+        }
+
+        function renderBonusTable(data, startIndex) {
+            const tbody = document.getElementById('bonusBody');
+            if (data.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="9" class="no-data"><i class="fas fa-inbox"></i><p>暂无匹配数据</p></td></tr>`;
+                return;
+            }
+            tbody.innerHTML = data.map((item, index) => `<tr>
+                <td style="text-align: center;">${String(startIndex + index + 1).padStart(2, '0')}</td>
+                <td>${item.bonusItem}</td>
+                <td>${item.name}</td>
+                <td>${item.factor}</td>
+                <td>${item.unit}</td>
+                <td style="text-align: left; max-width: 200px;">${item.opinion}</td>
+                <td style="text-align: left; max-width: 150px;">${item.reason}</td>
+                <td style="text-align: center;"><div class="toggle-switch ${item.adopted ? 'active' : ''}" onclick="toggleAdopt(this, 'bonus', ${item.id})"></div></td>
+                <td><input type="text" class="form-input w-full" placeholder="输入填入内容" value="${item.adoptDesc}" onchange="updateAdoptDesc('bonus', ${item.id}, this.value)" ${currentDetailStatus !== 'pending' ? 'readonly' : ''}></td>
+            </tr>`).join('');
+        }
+
+        function renderPartyTable(data, startIndex) {
+            const tbody = document.getElementById('partyBody');
+            if (data.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="8" class="no-data"><i class="fas fa-inbox"></i><p>暂无匹配数据</p></td></tr>`;
+                return;
+            }
+            tbody.innerHTML = data.map((item, index) => `<tr>
+                <td style="text-align: center;">${String(startIndex + index + 1).padStart(2, '0')}</td>
+                <td>${item.content}</td>
+                <td>${item.method}</td>
+                <td>${item.unit}</td>
+                <td style="text-align: left; max-width: 200px;">${item.opinion}</td>
+                <td style="text-align: left; max-width: 150px;">${item.reason}</td>
+                <td style="text-align: center;"><div class="toggle-switch ${item.adopted ? 'active' : ''}" onclick="toggleAdopt(this, 'party', ${item.id})"></div></td>
+                <td><input type="text" class="form-input w-full" placeholder="输入填入内容" value="${item.adoptDesc}" onchange="updateAdoptDesc('party', ${item.id}, this.value)" ${currentDetailStatus !== 'pending' ? 'readonly' : ''}></td>
+            </tr>`).join('');
+        }
+
+        function renderSafetyTable(data, startIndex) {
+            const tbody = document.getElementById('safetyBody');
+            if (data.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="7" class="no-data"><i class="fas fa-inbox"></i><p>暂无匹配数据</p></td></tr>`;
+                return;
+            }
+            tbody.innerHTML = data.map((item, index) => `<tr>
+                <td style="text-align: center;">${String(startIndex + index + 1).padStart(2, '0')}</td>
+                <td>${item.clause}</td>
+                <td>${item.unit}</td>
+                <td style="text-align: left; max-width: 200px;">${item.opinion}</td>
+                <td style="text-align: left; max-width: 150px;">${item.reason}</td>
+                <td style="text-align: center;"><div class="toggle-switch ${item.adopted ? 'active' : ''}" onclick="toggleAdopt(this, 'safety', ${item.id})"></div></td>
+                <td><input type="text" class="form-input w-full" placeholder="输入填入内容" value="${item.adoptDesc}" onchange="updateAdoptDesc('safety', ${item.id}, this.value)" ${currentDetailStatus !== 'pending' ? 'readonly' : ''}></td>
+            </tr>`).join('');
+        }
+
+        function renderDetailPagination(totalItems) {
+            const totalPages = Math.ceil(totalItems / detailPageSize) || 1;
+            const pagination = document.getElementById('detailPagination');
+
+            let html = '';
+            html += `<div class="page-item ${detailCurrentPage === 1 ? 'disabled' : ''}" onclick="goToDetailPage(${detailCurrentPage - 1})"><i class="fas fa-chevron-left"></i></div>`;
+
+            if (totalPages <= 7) {
+                for (let i = 1; i <= totalPages; i++) {
+                    html += `<div class="page-item ${i === detailCurrentPage ? 'active' : ''}" onclick="goToDetailPage(${i})">${i}</div>`;
+                }
+            } else {
+                html += `<div class="page-item ${1 === detailCurrentPage ? 'active' : ''}" onclick="goToDetailPage(1)">1</div>`;
+                if (detailCurrentPage > 3) html += `<div class="page-item page-ellipsis">...</div>`;
+
+                const start = Math.max(2, detailCurrentPage - 1);
+                const end = Math.min(totalPages - 1, detailCurrentPage + 1);
+                for (let i = start; i <= end; i++) {
+                    html += `<div class="page-item ${i === detailCurrentPage ? 'active' : ''}" onclick="goToDetailPage(${i})">${i}</div>`;
+                }
+
+                if (detailCurrentPage < totalPages - 2) html += `<div class="page-item page-ellipsis">...</div>`;
+                html += `<div class="page-item ${totalPages === detailCurrentPage ? 'active' : ''}" onclick="goToDetailPage(${totalPages})">${totalPages}</div>`;
+            }
+
+            html += `<div class="page-item ${detailCurrentPage === totalPages ? 'disabled' : ''}" onclick="goToDetailPage(${detailCurrentPage + 1})"><i class="fas fa-chevron-right"></i></div>`;
+            pagination.innerHTML = html;
+        }
+
+        function goToDetailPage(page) {
+            const data = getDetailData();
+            const totalPages = Math.ceil(data.length / detailPageSize) || 1;
+            if (page < 1 || page > totalPages) return;
+            detailCurrentPage = page;
+            renderDetailTables();
+        }
+
+        function changeDetailPageSize() {
+            detailPageSize = parseInt(document.getElementById('detailPageSize').value);
+            detailCurrentPage = 1;
+            renderDetailTables();
+            showToast('info', `已切换为每页 ${detailPageSize} 条`);
+        }
+
+        function handleDetailJump(event) {
+            if (event.key === 'Enter') {
+                const page = parseInt(event.target.value);
+                const data = getDetailData();
+                const totalPages = Math.ceil(data.length / detailPageSize) || 1;
+                if (page >= 1 && page <= totalPages) {
+                    goToDetailPage(page);
+                    event.target.value = '';
+                } else {
+                    showToast('error', `请输入 1-${totalPages} 之间的页码`);
+                }
+            }
+        }
+
+        function toggleAdopt(element, type, id) {
+            element.classList.toggle('active');
+            const isAdopted = element.classList.contains('active');
+
+            let dataArray;
+            switch(type) {
+                case 'performance': dataArray = allPerformanceData; break;
+                case 'bonus': dataArray = allBonusData; break;
+                case 'party': dataArray = allPartyData; break;
+                case 'safety': dataArray = allSafetyData; break;
+            }
+
+            const item = dataArray.find(d => d.id === id);
+            if (item) item.adopted = isAdopted;
+
+            showToast('success', isAdopted ? '已采纳该意见' : '已取消采纳');
+        }
+
+        function updateAdoptDesc(type, id, value) {
+            let dataArray;
+            switch(type) {
+                case 'performance': dataArray = allPerformanceData; break;
+                case 'bonus': dataArray = allBonusData; break;
+                case 'party': dataArray = allPartyData; break;
+                case 'safety': dataArray = allSafetyData; break;
+            }
+
+            const item = dataArray.find(d => d.id === id);
+            if (item) item.adoptDesc = value;
+        }
+
+        function handleSave() {
+            showToast('success', '保存成功！');
+        }
+
+        function handleImport() {
+            showToast('info', '请选择要导入的Excel文件');
+        }
+
+        function handleExport() {
+            showToast('success', '数据导出成功！');
+        }
+
+        function downloadAttachment() {
+            showToast('info', '正在下载附件...');
+        }
+
+        function handleSubmit() {
+            ProtoConfirm.show({
+                title: '提交确认',
+                message: '确定要提交所有反馈意见吗？提交后将无法修改。',
+                confirmText: '提交',
+                onConfirm: function () {
+                    const item = listData.find(d => d.id === currentDetailId);
+                    if (item) {
+                        item.status = 'submitted';
+                        item.statusText = '已提交';
+                        document.getElementById('detailStatus').textContent = '已提交';
+                        document.getElementById('submitBtn').style.display = 'none';
+                        renderListTable();
+                        showToast('success', '提交成功！');
+                    }
+                }
+            });
+        }
+
+        function handleFill(id) {
+            const item = listData.find(d => d.id === id);
+            if (!item) return;
+
+            currentDetailId = id;
+            currentDetailStatus = item.status;
+
+            document.getElementById('detailPeriod').textContent = item.period;
+            document.getElementById('detailName').textContent = item.name;
+            document.getElementById('detailDeadline').textContent = item.deadline || '2025-08-20 18:00:00';
+            document.getElementById('detailStatus').textContent = item.statusText;
+
+            const submitBtn = document.getElementById('submitBtn');
+            if (item.status === 'submitted' || item.status === 'published') {
+                submitBtn.style.display = 'none';
+            } else {
+                submitBtn.style.display = 'inline-flex';
+            }
+
+            switchPage('pageDetail');
+            showToast('success', '进入填报页面');
+        }
+
+        function handleView(id) {
+            handleFill(id);
+            showToast('info', '进入查看模式（只读）');
+        }
+
+        function handleSubmitFromList(id) {
+            ProtoConfirm.show({
+                title: '提交确认',
+                message: '确定要提交该征集的意见反馈吗？提交后将无法修改。',
+                confirmText: '提交',
+                onConfirm: function () {
+                    const item = listData.find(d => d.id === id);
+                    if (item) {
+                        item.status = 'submitted';
+                        item.statusText = '已提交';
+                        renderListTable();
+                        showToast('success', '提交成功！');
+                    }
+                }
+            });
+        }
+
+        function goBack() {
+            switchPage('pageList');
+            currentDetailId = null;
+        }
+
+        // ==================== MODAL ====================
+        function showOpinionModal(id) {
+            const modal = document.getElementById('opinionModal');
+            modal.classList.add('active');
+            renderModalTable('power');
+        }
+
+        function closeModal() {
+            const modal = document.getElementById('opinionModal');
+            modal.classList.remove('active');
+        }
+
+        function selectCategory(element, category) {
+            document.querySelectorAll('.sidebar-list li').forEach(li => li.classList.remove('active'));
+            element.classList.add('active');
+            renderModalTable(category);
+        }
+
+        function renderModalTable(category) {
+            const tbody = document.getElementById('modalTableBody');
+            const data = modalData[category] || [];
+
+            tbody.innerHTML = data.map((item, index) => `<tr>
+                <td style="text-align: center;">${String(index + 1).padStart(2, '0')}</td>
+                <td>${item}</td>
+            </tr>`).join('');
+        }
+
+        document.getElementById('opinionModal').addEventListener('click', function(e) {
+            if (e.target === this) closeModal();
+        });
+
+        // ==================== UTILITIES ====================
+        function switchPage(pageId) {
+            document.querySelectorAll('.page-container').forEach(page => page.classList.remove('active'));
+            document.getElementById(pageId).classList.add('active');
+            window.scrollTo(0, 0);
+        }
+
+        function showToast(type, message) {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+
+            let icon = '';
+            switch(type) {
+                case 'success': icon = '<i class="fas fa-check-circle" style="color: #52c41a;"></i>'; break;
+                case 'error': icon = '<i class="fas fa-times-circle" style="color: #ff4d4f;"></i>'; break;
+                case 'info': icon = '<i class="fas fa-info-circle" style="color: #1890ff;"></i>'; break;
+            }
+
+            toast.innerHTML = `${icon}<span>${message}</span>`;
+            container.appendChild(toast);
+
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transform = 'translateY(-20px)';
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        document.getElementById('searchPeriod').addEventListener('click', function() {
+            showToast('info', '请选择日期（演示模式）');
+            this.value = '2026-05-09';
+        });
+    </script>
+</body>
+</html>

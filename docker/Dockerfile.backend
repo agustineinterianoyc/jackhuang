@@ -1,0 +1,31 @@
+# syntax=docker/dockerfile:1.7
+# Backend dev image: JDK 21 + Maven, runs spring-boot:run in container
+# 源码通过 compose bind mount 注入，依赖通过命名卷 aldemo-maven-repo 持久化。
+# 首次启动会下载依赖（首次较慢）；后续启动直接读卷，秒级。
+
+FROM eclipse-temurin:21-jdk-jammy
+
+ENV LANG=C.UTF-8 \
+    LC_ALL=C.UTF-8 \
+    TZ=Asia/Shanghai \
+    MAVEN_OPTS="-Dfile.encoding=UTF-8"
+
+ARG MAVEN_VERSION=3.9.11
+
+# 安装 Maven 与基础工具；不预热依赖，留给首次启动通过卷下载
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends curl ca-certificates tzdata \
+ && rm -rf /var/lib/apt/lists/* \
+ && curl -fsSL "https://archive.apache.org/dist/maven/maven-3/${MAVEN_VERSION}/binaries/apache-maven-${MAVEN_VERSION}-bin.tar.gz" \
+      -o /tmp/maven.tar.gz \
+ && mkdir -p /opt/maven \
+ && tar -xzf /tmp/maven.tar.gz -C /opt/maven --strip-components=1 \
+ && rm /tmp/maven.tar.gz \
+ && ln -s /opt/maven/bin/mvn /usr/local/bin/mvn
+
+WORKDIR /workspace/backend
+
+EXPOSE 8080
+
+# 容器内执行业务模块运行；profile 默认沿用 application.yaml 中 dev,mysql
+CMD ["mvn", "-pl", "aldemo", "-am", "spring-boot:run"]

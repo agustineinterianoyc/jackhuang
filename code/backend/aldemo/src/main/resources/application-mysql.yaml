@@ -1,0 +1,13 @@
+app:
+  database:
+    # 标记当前数据库方言，供 SQL 初始化脚本与 DataSQL 生成逻辑复用。
+    platform: mysql
+
+spring:
+  datasource:
+    # 本地 MySQL 默认连接；若 Nacos 中覆盖同名配置，将以远端为准。
+    url: ${MYSQL_URL:jdbc:mysql://127.0.0.1:3306/${app.database.name}?useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true&useSSL=false&createDatabaseIfNotExist=true}
+    # 本地开发优先使用环境变量覆盖账号密码，避免把真实凭证写死在仓库里。
+    username: ${MYSQL_USERNAME:root}
+    password: ${MYSQL_PASSWORD:123456}
+    driver-class-name: com.mysql.cj.jdbc.Driver

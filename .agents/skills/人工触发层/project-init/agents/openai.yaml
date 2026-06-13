@@ -1,0 +1,4 @@
+interface:
+  display_name: "Project Init"
+  short_description: "Initialize this scaffold into a real project."
+  default_prompt: "Initialize this scaffold for a new project by collecting project facts, cleaning demo residue, applying replacements, and syncing docs."

@@ -1,0 +1,17 @@
+# Files ignored when building docker images from the project root.
+# Keep build context small so dependency layer cache stays effective.
+
+**/.git
+**/.gitignore
+**/.idea
+**/.vscode
+**/.opencode
+**/node_modules
+**/target
+**/dist
+**/logs
+**/*.log
+**/coverage
+**/.DS_Store
+
+docs/历史归档

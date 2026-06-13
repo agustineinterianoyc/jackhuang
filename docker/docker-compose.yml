@@ -1,0 +1,74 @@
+# Docker Compose for aldemo (公司培训项目)
+# 用法：从项目根目录执行
+#   docker compose -f docker/docker-compose.yml up -d --build
+# 服务覆盖：后端 (Spring Boot) + 前端 (Vite dev server)
+# 数据库：复用宿主机 MySQL，通过 host.docker.internal 访问
+
+name: aldemo
+
+services:
+  backend:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.backend
+    image: aldemo-backend-dev:latest
+    container_name: aldemo-backend
+    working_dir: /workspace/backend
+    environment:
+      # 容器内通过 host.docker.internal 访问宿主机 MySQL
+      MYSQL_URL: jdbc:mysql://host.docker.internal:3306/aldemo?useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true&useSSL=false&createDatabaseIfNotExist=true
+      MYSQL_USERNAME: ${MYSQL_USERNAME:-root}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-123456}
+      # 默认沿用 application.yaml 中 active=dev,mysql；如需覆盖在此设置
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-dev,mysql}
+      # Nacos 默认关闭；如需启用可在 .env 或这里覆盖
+      NACOS_DISCOVERY_ENABLED: "false"
+      NACOS_CONFIG_ENABLED: "false"
+      SERVICE_REGISTRY_AUTO_REGISTRATION: "false"
+      SERVICE_DISCOVERY_ENABLED: "false"
+    ports:
+      - "${BACKEND_PORT:-8080}:8080"
+    volumes:
+      # 源码挂载，便于在容器内即时编译运行
+      - ../code/backend:/workspace/backend
+      # Maven 本地仓库使用命名卷，避免每次容器重建都重新下载依赖
+      - aldemo-maven-repo:/root/.m2
+    extra_hosts:
+      # 让 Linux 容器也能识别 host.docker.internal（Windows / Mac 默认已注入）
+      - "host.docker.internal:host-gateway"
+    networks:
+      - aldemo-net
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.frontend
+    image: aldemo-frontend-dev:latest
+    container_name: aldemo-frontend
+    working_dir: /workspace/frontend
+    environment:
+      # 后端 API 地址：浏览器 -> 宿主机 8080；如改动按需覆盖
+      VITE_API_BASE_URL: ${VITE_API_BASE_URL:-http://localhost:8080/api}
+    ports:
+      - "${FRONTEND_PORT:-5173}:5173"
+    volumes:
+      - ../code/frontend:/workspace/frontend
+      # node_modules 用命名卷隔离，防止宿主目录覆盖容器内已安装的依赖
+      - aldemo-frontend-node-modules:/workspace/frontend/node_modules
+    networks:
+      - aldemo-net
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+volumes:
+  aldemo-maven-repo:
+    name: aldemo-maven-repo
+  aldemo-frontend-node-modules:
+    name: aldemo-frontend-node-modules
+
+networks:
+  aldemo-net:
+    name: aldemo-net
+    driver: bridge

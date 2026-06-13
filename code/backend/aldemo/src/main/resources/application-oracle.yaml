@@ -1,0 +1,18 @@
+app:
+  database:
+    # 标记当前数据库方言，供 SQL 初始化脚本与 DataSQL 生成逻辑复用。
+    platform: oracle
+    # Oracle 默认库名保留本地兜底值，方便无 Nacos 时快速切换。
+    name: ${APP_DATABASE_NAME:XEPDB1}
+
+spring:
+  datasource:
+    # Oracle 连接信息默认从环境变量读取，避免把真实地址固化到仓库。
+    url: ${ORACLE_URL:jdbc:oracle:thin:@//127.0.0.1:1521/${app.database.name}}
+    username: ${ORACLE_USERNAME:aldemo}
+    password: ${ORACLE_PASSWORD:aldemo}
+    driver-class-name: oracle.jdbc.OracleDriver
+  sql:
+    init:
+      # Oracle 环境默认不执行通用初始化脚本，避免方言不兼容。
+      mode: never

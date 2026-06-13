@@ -1,0 +1,188 @@
+{
+  "path_renames": [
+    {
+      "from": "code/backend/ai-training-project",
+      "to": "code/backend/your-app-service"
+    },
+    {
+      "from": "code/backend/backend-api/src/main/java/com/hzzenith/ai/training",
+      "to": "code/backend/backend-api/src/main/java/com/example/yourapp"
+    },
+    {
+      "from": "code/backend/backend-core/src/main/java/com/hzzenith/ai/training",
+      "to": "code/backend/backend-core/src/main/java/com/example/yourapp"
+    },
+    {
+      "from": "code/backend/backend-core/src/test/java/com/hzzenith/ai/training",
+      "to": "code/backend/backend-core/src/test/java/com/example/yourapp"
+    },
+    {
+      "from": "code/backend/backend-data/src/main/java/com/hzzenith/ai/training",
+      "to": "code/backend/backend-data/src/main/java/com/example/yourapp"
+    },
+    {
+      "from": "code/backend/backend-data/src/test/java/com/hzzenith/ai/training",
+      "to": "code/backend/backend-data/src/test/java/com/example/yourapp"
+    },
+    {
+      "from": "code/backend/ai-training-project/src/main/java/com/hzzenith/ai/training",
+      "to": "code/backend/your-app-service/src/main/java/com/example/yourapp"
+    },
+    {
+      "from": "code/backend/ai-training-project/src/test/java/com/hzzenith/ai/training",
+      "to": "code/backend/your-app-service/src/test/java/com/example/yourapp"
+    },
+    {
+      "from": "code/backend/ai-training-project/src/main/resources/nacos/ai-training-project.yaml",
+      "to": "code/backend/your-app-service/src/main/resources/nacos/your-app-service.yaml"
+    }
+  ],
+  "global_include_roots": [
+    "AGENTS.md",
+    "code/backend",
+    "code/frontend",
+    "docs"
+  ],
+  "global_replacements": [
+    {
+      "from": "com.hzzenith.ai.training",
+      "to": "com.example.yourapp"
+    },
+    {
+      "from": "ai-training-project",
+      "to": "your-app-service"
+    },
+    {
+      "from": "process-ex",
+      "to": "your-project-name"
+    },
+    {
+      "from": "Process-Ex",
+      "to": "你的项目名称"
+    },
+    {
+      "from": "ai_drill_project",
+      "to": "your_project_name"
+    },
+    {
+      "from": "'PE'",
+      "to": "'YP'"
+    },
+    {
+      "from": "A业务",
+      "to": "你的业务目录"
+    }
+  ],
+  "protected_fact_targets": [
+    "docs/规范/AI开发SOP.md",
+    "docs/规范"
+  ],
+  "protected_fact_replacements": [
+    {
+      "from": "ai-training-project",
+      "to": "your-app-service"
+    },
+    {
+      "from": "Process-Ex",
+      "to": "你的项目名称"
+    }
+  ],
+  "init_document": {
+    "enabled": true,
+    "path": "docs/项目信息/项目初始化信息.md",
+    "facts": {
+      "project_name_cn": "你的项目中文名",
+      "project_name_en": "your-project-name",
+      "project_code": "ypn",
+      "backend_package": "com.example.yourapp",
+      "app_module_name": "your-app-service",
+      "app_directory_name": "your-app-service",
+      "jdk_version": "21",
+      "maven_version": "3.9.x",
+      "spring_boot_version": "4.0.x",
+      "spring_cloud_version": "2025.1.x",
+      "spring_cloud_alibaba_version": "2025.1.0.0",
+      "mybatis_plus_version": "3.5.15",
+      "node_version": "20",
+      "database_platform": "mysql",
+      "retained_env_profiles": [
+        "dev",
+        "test",
+        "prod"
+      ],
+      "retained_database_profiles": [
+        "mysql"
+      ],
+      "dependency_matrix_source": "jdk-maven-matrix/JDK21",
+      "middleware_versions": [
+        "nacos=3.x",
+        "mysql-driver=由Spring Boot BOM托管",
+        "postgresql-driver=由Spring Boot BOM托管",
+        "oracle-driver=由Spring Boot BOM托管"
+      ],
+      "spring_application_name": "your-app-service",
+      "service_name": "your-app-service",
+      "config_data_id": "your-app-service.yaml",
+      "database_name": "your_database",
+      "table_prefix": "ypn_",
+      "frontend_title": "你的项目中文名",
+      "api_prefix": "/api",
+      "preserve_shared_module_names": "是",
+      "preserve_demo_chain": "否",
+      "preserve_dictionary_demo": "待确认",
+      "doc_history_strategy": "archive",
+      "notes": [
+        "把示例目录先归档再决定是否彻底删除。",
+        "如果业务模块目录名变更，记得同步父 POM modules。",
+        "后端技术基线优先从 .agents/skills/人工触发层/jdk-maven-matrix/SKILL.md 取值。",
+        "父 POM 的 pluginManagement 中必须为 spring-boot-maven-plugin 配置 <skip>true</skip>，仅业务应用模块显式声明该插件。"
+      ]
+    }
+  },
+  "cleanup": {
+    "enabled": false,
+    "include_test_reports": true,
+    "include_demo_docs": false,
+    "include_demo_datasql": false,
+    "archive_change_records": false
+  },
+  "scripts": {
+    "output_dir": "script",
+    "log_dir": "logs",
+    "log_files": {
+      "backend": "logs/backend.log",
+      "frontend": "logs/frontend.log"
+    },
+    "entries": [
+      {
+        "name": "start-backend.sh",
+        "title": "启动后端",
+        "command": "cd code/backend && ./mvnw -pl {APP_MODULE} -am spring-boot:run",
+        "variables": {
+          "APP_MODULE": "业务模块名"
+        }
+      },
+      {
+        "name": "start-frontend.sh",
+        "title": "启动前端",
+        "command": "cd code/frontend && npm run dev",
+        "variables": {}
+      },
+      {
+        "name": "start-all.sh",
+        "title": "启动前后端",
+        "command": "并行执行 start-backend.sh 和 start-frontend.sh，含 PID 输出和 Ctrl+C 优雅停止",
+        "variables": {}
+      }
+    ]
+  },
+  "residual_scan_tokens": [
+    "com.hzzenith.ai.training",
+    "com/hzzenith/ai/training",
+    "ai-training-project",
+    "process-ex",
+    "Process-Ex",
+    "ai_drill_project",
+    "'PE'"
+  ]
+}

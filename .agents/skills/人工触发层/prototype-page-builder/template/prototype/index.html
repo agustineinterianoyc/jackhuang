@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>产品原型站点</title>
+  <link rel="stylesheet" href="./index.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <header class="app-header">
+      <div>
+        <h1 id="siteName" class="app-site-name">产品原型站点</h1>
+        <p id="siteDesc" class="app-site-desc">在此维护原型站点标题和简介。</p>
+      </div>
+      <div class="app-header-actions">
+        <button type="button" class="proto-button proto-button-secondary" id="headerHelpBtn">使用说明</button>
+      </div>
+    </header>
+
+    <div class="app-body">
+      <aside class="app-sidebar">
+        <div class="app-sidebar-title">页面目录</div>
+        <nav id="menuRoot" class="app-menu" aria-label="页面菜单"></nav>
+      </aside>
+
+      <main class="app-main">
+        <section class="app-main-header">
+          <div>
+            <div id="pagePath" class="app-page-path">原型 / 首页</div>
+            <h2 id="pageTitle" class="app-page-title">首页</h2>
+            <p id="pageDesc" class="app-page-desc">当前页面说明会显示在这里。</p>
+          </div>
+        </section>
+
+        <section class="app-main-body">
+          <iframe
+            id="pageFrame"
+            class="app-frame"
+            title="原型页面内容"
+            src="./pages/empty.html"
+          ></iframe>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <div id="toastRoot" class="toast-root" aria-live="polite"></div>
+
+  <div id="dialogMask" class="dialog-mask" hidden>
+    <div class="dialog-panel" role="dialog" aria-modal="true" aria-labelledby="dialogTitle">
+      <div class="dialog-header">
+        <h3 id="dialogTitle">提示</h3>
+        <button type="button" class="proto-button proto-button-text" id="dialogCloseBtn">关闭</button>
+      </div>
+      <div id="dialogContent" class="dialog-content">这里可以放站点级说明或提示内容。</div>
+    </div>
+  </div>
+
+  <script src="./menu.js"></script>
+  <script src="./main.js"></script>
+</body>
+</html>

@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>基层单位意见征集审核</title>
+    <script src="_tailwind.js"></script>
+    <link rel="stylesheet" href="_fa/all.min.css">
+    <link rel="stylesheet" href="_list-common.css">
+    <script src="js/proto-toast.js"></script>
+    <script src="js/proto-modal.js"></script>
+    <script src="js/proto-page.js"></script>
+    <script src="js/proto-pagination.js"></script>
+    <script src="js/proto-table.js"></script>
+    <script src="js/proto-data.js"></script>
+    <script src="js/proto-confirm.js"></script>
+
+    <style>
+body { font-family: Arial, 'PingFang SC', 'Microsoft YaHei', sans-serif; background-color: #f5f7fa; color: #333; }
+.modal-box { background: #fff; border-radius: 4px; width: 480px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+.info-icon { color: #1890FF; cursor: pointer; position: relative; display: inline-block; }
+.tooltip { visibility: hidden; position: absolute; bottom: 125%; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.75); color: #fff; padding: 6px 12px; border-radius: 4px; font-size: 12px; white-space: nowrap; z-index: 100; opacity: 0; transition: opacity 0.2s; }
+.tooltip::after { content: ""; position: absolute; top: 100%; left: 50%; margin-left: -5px; border: 5px solid transparent; border-top-color: rgba(0,0,0,0.75); }
+.info-icon:hover .tooltip { visibility: visible; opacity: 1; }
+.tab-active { color: #1890FF; border-bottom: 2px solid #1890FF; }
+.tab-inactive { color: #666; border-bottom: 2px solid transparent; }
+.tab-inactive:hover { color: #1890FF; }
+</style>
+</head>
+<body class="min-h-screen">
+
+    <!-- Toast -->
+    <div id="toastContainer" class="toast-container"></div>
+
+    <!-- 列表页 -->
+    <div id="listView" class="p-6">
+
+
+        <div class="card p-5 mb-4">
+            <div class="flex flex-wrap items-center gap-4">
+                <div class="flex items-center gap-2">
+                    <label class="text-sm text-gray-700 whitespace-nowrap">考核周期：</label>
+                    <div class="relative">
+                        <input type="text" id="searchDate" placeholder="请选择日期" class="form-input w-48 pr-8 text-sm" readonly onclick="toggleDatePicker()">
+                        <i class="fa-regular fa-calendar absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 cursor-pointer" onclick="toggleDatePicker()"></i>
+                    </div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <label class="text-sm text-gray-700 whitespace-nowrap">征集名称：</label>
+                    <div class="relative">
+                        <input type="text" id="searchName" placeholder="请输入内容" class="form-input w-56 pr-8 text-sm">
+                        <i class="fa-solid fa-magnifying-glass absolute right-2 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                    </div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <label class="text-sm text-gray-700 whitespace-nowrap">状态：</label>
+                    <div class="relative">
+                        <select id="searchStatus" class="form-select w-48 pr-8 text-sm">
+                            <option value="">请选择内容</option>
+                            <option value="pending">待审核</option>
+                            <option value="approved">已审核</option>
+                            <option value="returned">已退回</option>
+                            <option value="published">已发布</option>
+                        </select>
+                        <i class="fa-solid fa-chevron-down absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none text-xs"></i>
+                    </div>
+                </div>
+                <div class="flex items-center gap-3 ml-auto">
+                    <button onclick="clearSearch()" class="btn-default px-4 py-1.5 text-sm rounded transition">清空条件</button>
+                    <button onclick="doSearch()" class="btn-primary px-4 py-1.5 text-sm rounded transition flex items-center gap-1">
+                        <i class="fa-solid fa-magnifying-glass text-xs"></i>搜索
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="card p-5">
+            <div class="overflow-x-auto">
+                <table class="data-table w-full text-sm border-collapse">
+                    <thead>
+                        <tr class=" border-b border-border-light h-10">
+                            <th class="text-left px-4 font-medium w-16">序号</th>
+                            <th class="text-left px-4 font-medium cursor-pointer hover:text-blue-500" onclick="toggleSort(this)">
+                                考核周期<i class="fa-solid fa-sort sort-icon active fa-sort-up"></i>
+                            </th>
+                            <th class="text-left px-4 font-medium">征集名称</th>
+                            <th class="text-left px-4 font-medium">征集模块</th>
+                            <th class="text-left px-4 font-medium">
+                                基层截止时间
+                                <span class="info-icon ml-1">
+                                    <i class="fa-solid fa-circle-info"></i>
+                                    <span class="tooltip">超时系统将自动零报送</span>
+                                </span>
+                            </th>
+                            <th class="text-left px-4 font-medium cursor-pointer hover:text-blue-500" onclick="toggleSort(this)">
+                                状态<i class="fa-solid fa-sort sort-icon"></i>
+                            </th>
+                            <th class="text-left px-4 font-medium w-24">操作</th>
+                        </tr>
+                    </thead>
+                    <tbody id="listTableBody">
+                        <tr class="border-b border-border-light h-14">
+                            <td class="px-4 text-gray-700">01</td>
+                            <td class="px-4 text-gray-700">2023年</td>
+                            <td class="px-4 text-gray-700">2026年第一轮第一批次意见征集</td>
+                            <td class="px-4 text-gray-700">关键业绩指标、安全工作指标</td>
+                            <td class="px-4 text-gray-700">2026-02-10 18:00:00</td>
+                            <td class="px-4 text-gray-700">待审核</td>
+                            <td class="px-4"><span class="link-primary" onclick="goDetail('audit',1)">审核</span></td>
+                        </tr>
+                        <tr class="border-b border-border-light h-14">
+                            <td class="px-4 text-gray-700">02</td>
+                            <td class="px-4 text-gray-700">2022年</td>
+                            <td class="px-4 text-gray-700">第一轮</td>
+                            <td class="px-4"></td>
+                            <td class="px-4"></td>
+                            <td class="px-4 text-gray-700">已审核</td>
+                            <td class="px-4"><span class="link-primary" onclick="goDetail('view',2)">查看</span></td>
+                        </tr>
+                        <tr class="border-b border-border-light h-14">
+                            <td class="px-4 text-gray-700">03</td>
+                            <td class="px-4 text-gray-700">......</td>
+                            <td class="px-4"></td>
+                            <td class="px-4"></td>
+                            <td class="px-4"></td>
+                            <td class="px-4 text-gray-700">已退回</td>
+                            <td class="px-4"><span class="link-primary" onclick="goDetail('view',3)">查看</span></td>
+                        </tr>
+                        <tr class="border-b border-border-light h-14">
+                            <td class="px-4"></td>
+                            <td class="px-4"></td>
+                            <td class="px-4"></td>
+                            <td class="px-4"></td>
+                            <td class="px-4"></td>
+                            <td class="px-4 text-gray-700">已发布</td>
+                            <td class="px-4"><span class="link-primary" onclick="goDetail('view',4)">查看</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- 详情页 -->
+    <div id="detailView" class="p-6 hidden">
+        <div class="mb-4 text-sm text-gray-500 flex items-center justify-between">
+            <div>
+                <span class="cursor-pointer hover:text-blue-500" onclick="backToList()">首页</span>
+                <span class="mx-2">/</span>
+                <span class="cursor-pointer hover:text-blue-500" onclick="backToList()">基层单位意见征集审核</span>
+                <span class="mx-2">/</span>
+                <span class="text-gray-700" id="detailBreadcrumb">审核</span>
+            </div>
+        </div>
+
+        <div class="card p-5 mb-4">
+            <div class="info-row">
+                <div class="info-item"><span class="info-label">征集周期：</span><span class="info-value" id="infoPeriod">2026年</span></div>
+                <div class="info-item"><span class="info-label">征集名称：</span><span class="info-value" id="infoName">2026年第一轮第一批次意见征集</span></div>
+                <div class="info-item"><span class="info-label">截止时间：</span><span class="info-value" id="infoDeadline">2025-08-20 18:00:00</span></div>
+                <div class="info-item"><span class="info-label">状态：</span><span class="info-value" id="infoStatus">待提交</span></div>
+            </div>
+            <div class="flex gap-3" id="detailActions"></div>
+        </div>
+
+        <div class="card">
+            <div class="flex border-b border-border-light px-5">
+                <div class="tab-item px-4 py-3 text-sm cursor-pointer tab-active font-medium" onclick="switchTab('tab1')">关键业绩指标</div>
+                <div class="tab-item px-4 py-3 text-sm cursor-pointer tab-inactive font-medium" onclick="switchTab('tab2')">业绩争取加分</div>
+                <div class="tab-item px-4 py-3 text-sm cursor-pointer tab-inactive font-medium" onclick="switchTab('tab3')">党建工作指标</div>
+                <div class="tab-item px-4 py-3 text-sm cursor-pointer tab-inactive font-medium" onclick="switchTab('tab4')">安全工作指标</div>
+                <div class="tab-item px-4 py-3 text-sm cursor-pointer tab-inactive font-medium" onclick="switchTab('tab5')">其他</div>
+            </div>
+
+            <!-- TAB1: 关键业绩指标（保留可交互Toggle，删除意见采纳说明/调整后内容/附件列） -->
+            <div id="tab1" class="tab-content p-5">
+                <div class="flex flex-wrap items-center gap-3 mb-4">
+                    <button class="btn-default px-3 py-1 text-sm rounded transition" onclick="showToast('保存成功')">保存</button>
+                    <button class="btn-default px-3 py-1 text-sm rounded transition" onclick="showImportModal()">数据导入</button>
+                    <button class="btn-default px-3 py-1 text-sm rounded transition" onclick="showToast('数据导出成功')">数据导出</button>
+                    <div class="ml-4 text-sm"><span class="text-gray-500">指标体系附件：</span><span class="link-primary">2025年度基层单位关键业绩指标体系.pdf</span></div>
+                    <div class="ml-auto flex gap-2">
+                        <div class="relative"><input type="text" placeholder="输入指标名称" class="form-input w-40 pr-7 text-sm"><i class="fa-solid fa-magnifying-glass absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 text-xs"></i></div>
+                        <div class="relative">
+                            <select class="form-select w-32 pr-7 text-sm text-gray-400"><option>上级责任部门</option><option>财务部</option><option>发展部</option></select>
+                            <i class="fa-solid fa-chevron-down absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none text-xs"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="detail-table w-full text-sm border border-border-light">
+                        <thead>
+                            <tr class=" h-10">
+                                <th class="text-center px-2 font-medium w-12" rowspan="2">序号</th>
+                                <th class="text-left px-3 font-medium" rowspan="2">指标类别</th>
+                                <th class="text-left px-3 font-medium cursor-pointer" rowspan="2" onclick="toggleSort(this)">指标名称<i class="fa-solid fa-sort sort-icon"></i></th>
+                                <th class="text-left px-3 font-medium" rowspan="2">因子名称</th>
+                                <th class="text-left px-3 font-medium cursor-pointer" rowspan="2" onclick="toggleSort(this)">上级责任部门<i class="fa-solid fa-sort sort-icon"></i></th>
+                                <th class="text-center px-3 font-medium" colspan="3">意见建议</th>
+                            </tr>
+                            <tr class=" h-10">
+                                <th class="text-left px-3 font-medium">意见分类</th>
+                                <th class="text-left px-3 font-medium">意见内容</th>
+                                <th class="text-left px-3 font-medium">原因说明</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr class="border-b border-border-light h-12"><td class="px-2 text-center">01</td><td class="px-3">经营实力</td><td class="px-3">内模利润</td><td class="px-3">内模利润</td><td class="px-3">财务部</td><td class="px-3">指标定义</td><td class="px-3">XXXXXXXXXXXXXXXXXXXXXXXXXX</td><td class="px-3">XXXXXXXXXXXXXXXXX</td></tr>
+                            <tr class="border-b border-border-light h-12"><td class="px-2 text-center">02</td><td class="px-3">经营实力</td><td class="px-3">内模利润</td><td class="px-3">内模利润</td><td class="px-3">财务部</td><td class="px-3">指标定义</td><td class="px-3">XXXXXXXXXXXXXXXXXXXXXXXXXX</td><td class="px-3">XXXXXXXXXXXXXXXXX</td></tr>
+                            <tr class="border-b border-border-light h-12"><td class="px-2 text-center">03</td><td class="px-3">经营实力</td><td class="px-3">内模利润</td><td class="px-3">内模利润</td><td class="px-3">财务部</td><td class="px-3">指标定义</td><td class="px-3">XXXXXXXXXXXXXXXXXXXXXXXXXX</td><td class="px-3">XXXXXXXXXXXXXXXXX</td></tr>
+                            <tr class="border-b border-border-light h-12"><td class="px-2 text-center">04</td><td class="px-3">经营实力</td><td class="px-3">内模利润</td><td class="px-3">内模利润</td><td class="px-3">财务部</td><td class="px-3">指标定义</td><td class="px-3">XXXXXXXXXXXXXXXXXXXXXXXXXX</td><td class="px-3">XXXXXXXXXXXXXXXXX</td></tr>
+                            <tr class="border-b border-border-light h-12"><td class="px-2 text-center">05</td><td class="px-3 text-gray-400">......</td><td class="px-3"></td><td class="px-3"></td><td class="px-3"></td><td class="px-3"></td><td class="px-3"></td><td class="px-3"></td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="flex items-center justify-between mt-4 text-sm"><div class="text-gray-500">共 658 项数据</div><div class="flex items-center gap-2"><select class="form-select w-20 text-sm"><option>10条/页</option><option>20条/页</option><option>50条/页</option></select><button class="page-item disabled"><i class="fa-solid fa-chevron-left text-xs"></i></button><button class="page-item active">1</button><span class="text-gray-400">...</span><button class="page-item">50</button><button class="page-item">51</button><button class="page-item">52</button><button class="page-item">53</button><button class="page-item">54</button><span class="text-gray-400">...</span><button class="page-item">90</button><button class="page-item"><i class="fa-solid fa-chevron-right text-xs"></i></button><span class="text-gray-500 ml-2">跳至</span><input type="text" class="form-input w-10 text-center text-sm" value="53"><span class="text-gray-500">页</span></div></div>
+            </div>
+
+            <!-- TAB2: 业绩争取加分（复合表头意见建议，只读，已移除添加意见建议按钮） -->
+            <div id="tab2" class="tab-content p-5 hidden">
+                <div class="flex flex-wrap items-center gap-3 mb-4">
+                    <button class="btn-default px-3 py-1 text-sm rounded transition text-blue-500 border-blue-500" onclick="showToast('保存成功')">保存</button>
+                    <button class="btn-default px-3 py-1 text-sm rounded transition" onclick="showImportModal()">数据导入</button>
+                    <button class="btn-default px-3 py-1 text-sm rounded transition" onclick="showToast('数据导出成功')">数据导出</button>
+                    <div class="ml-4 text-sm"><span class="text-gray-500">指标体系附件：</span><span class="link-primary">2025年度基层单位关键业绩指标体系.pdf</span></div>
+                    <div class="ml-auto flex gap-2">
+                        <div class="relative"><input type="text" placeholder="输入指标名称" class="form-input w-40 pr-7 text-sm"><i class="fa-solid fa-magnifying-glass absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 text-xs"></i></div>
+                        <div class="relative"><select class="form-select w-32 pr-7 text-sm text-gray-400"><option>上级责任部门</option><option>财务部</option><option>发展部</option></select><i class="fa-solid fa-chevron-down absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none text-xs"></i></div>
+                    </div>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="detail-table w-full text-sm border border-border-light">
+                        <thead>
+                            <tr class=" h-10">
+                                <th class="text-center px-2 font-medium w-12" rowspan="2">序号</th>
+                                <th class="text-left px-3 font-medium" rowspan="2">加分事项</th>
+                                <th class="text-left px-3 font-medium cursor-pointer" rowspan="2" onclick="toggleSort(this)">指标名称<i class="fa-solid fa-sort sort-icon"></i></th>
+                                <th class="text-left px-3 font-medium" rowspan="2">因子名称/评价标准</th>
+                                <th class="text-left px-3 font-medium cursor-pointer" rowspan="2" onclick="toggleSort(this)">上级责任部门<i class="fa-solid fa-sort sort-icon"></i></th>
+                                <th class="text-center px-3 font-medium" colspan="2">意见建议</th>
+                            </tr>
+                            <tr class=" h-10">
+                                <th class="text-left px-3 font-medium">意见内容</th>
+                                <th class="text-left px-3 font-medium">原因说明</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr class="border-b border-border-light h-12"><td class="px-2 text-center">01</td><td class="px-3">由各单位主导/参...</td><td class="px-3">建设高水平人才高地</td><td class="px-3">建设高水平人才高地</td><td class="px-3">财务部</td><td class="px-3">内模利润</td><td class="px-3">内模利润</td></tr>
+                            <tr class="border-b border-border-light h-12"><td class="px-2 text-center">02</td><td class="px-3">由各单位主导/参...</td><td class="px-3">建设高水平人才高地</td><td class="px-3">建设高水平人才高地</td><td class="px-3">发展部</td><td class="px-3">售电量</td><td class="px-3">售电量</td></tr>
+                            <tr class="border-b border-border-light h-12"><td class="px-2 text-center">03</td><td class="px-3">由各单位主导/参...</td><td class="px-3">建设高水平人才高地</td><td class="px-3">建设高水平人才高地</td><td class="px-3">发展部</td><td class="px-3">线损率</td><td class="px-3">线损率</td></tr>
+                            <tr class="border-b border-border-light h-12"><td class="px-2 text-center">04</td><td class="px-3">由各单位主导/参...</td><td class="px-3">建设高水平人才高地</td><td class="px-3">建设高水平人才高地</td><td class="px-3">发展部</td><td class="px-3">电网公平开放指数</td><td class="px-3">电网公平开放指数</td></tr>
+                            <tr class="border-b border-border-light h-12"><td class="px-2 text-center">05</td><td class="px-3 text-gray-400">......</td><td class="px-3"></td><td class="px-3"></td><td class="px-3"></td><td class="px-3"></td><td class="px-3"></td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="flex items-center justify-between mt-4 text-sm"><div class="text-gray-500">共 658 项数据</div><div class="flex items-center gap-2"><select class="form-select w-20 text-sm"><option>10条/页</option><option>20条/页</option><option>50条/页</option></select><button class="page-item disabled"><i class="fa-solid fa-chevron-left text-xs"></i></button><button class="page-item active">1</button><span class="text-gray-400">...</span><button class="page-item">50</button><button class="page-item">51</button><button class="page-item">52</button><button class="page-item">53</button><button class="page-item">54</button><span class="text-gray-400">...</span><button class="page-item">90</button><button class="page-item"><i class="fa-solid fa-chevron-right text-xs"></i></button><span class="text-gray-500 ml-2">跳至</span><input type="text" class="form-input w-10 text-center text-sm" value="53"><span class="text-gray-500">页</span></div></div>
+            </div>
+
+            <!-- TAB3: 党建工作指标（复合表头意见建议，只读，已移除添加意见建议按钮） -->
+            <div id="tab3" class="tab-content p-5 hidden">
+                <div class="flex flex-wrap items-center gap-3 mb-4">
+                    <button class="btn-default px-3 py-1 text-sm rounded transition text-blue-500 border-blue-500" onclick="showToast('保存成功')">保存</button>
+                    <button class="btn-default px-3 py-1 text-sm rounded transition" onclick="showImportModal()">数据导入</button>
+                    <button class="btn-default px-3 py-1 text-sm rounded transition" onclick="showToast('数据导出成功')">数据导出</button>
+                    <div class="ml-4 text-sm"><span class="text-gray-500">指标体系附件：</span><span class="link-primary">2025年度基层单位关键业绩指标体系.pdf</span></div>
+                    <div class="ml-auto flex gap-2">
+                        <div class="relative"><input type="text" placeholder="输入指标名称" class="form-input w-40 pr-7 text-sm"><i class="fa-solid fa-magnifying-glass absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 text-xs"></i></div>
+                        <div class="relative"><select class="form-select w-32 pr-7 text-sm text-gray-400"><option>上级责任部门</option><option>党委宣传部</option></select><i class="fa-solid fa-chevron-down absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none text-xs"></i></div>
+                    </div>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="detail-table w-full text-sm border border-border-light">
+                        <thead>
+                            <tr class=" h-10">
+                                <th class="text-center px-2 font-medium w-12" rowspan="2">序号</th>
+                                <th class="text-left px-3 font-medium cursor-pointer" rowspan="2" onclick="toggleSort(this)">考核内容<i class="fa-solid fa-sort sort-icon"></i></th>
+                                <th class="text-left px-3 font-medium cursor-pointer" rowspan="2" onclick="toggleSort(this)">考评方式<i class="fa-solid fa-sort sort-icon"></i></th>
+                                <th class="text-left px-3 font-medium cursor-pointer" rowspan="2" onclick="toggleSort(this)">上级责任部门<i class="fa-solid fa-sort sort-icon"></i></th>
+                                <th class="text-center px-3 font-medium" colspan="2">意见建议</th>
+                            </tr>
+                            <tr class=" h-10">
+                                <th class="text-left px-3 font-medium">意见内容</th>
+                                <th class="text-left px-3 font-medium">原因说明</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr class="border-b border-border-light h-12"><td class="px-2 text-center">01</td><td class="px-3">新闻宣传</td><td class="px-3">加项</td><td class="px-3">党委宣传部</td><td class="px-3">内模利润</td><td class="px-3">内模利润</td></tr>
+                            <tr class="border-b border-border-light h-12"><td class="px-2 text-center">02</td><td class="px-3">新闻宣传</td><td class="px-3">减项</td><td class="px-3">党委宣传部</td><td class="px-3">售电量</td><td class="px-3">售电量</td></tr>
+                            <tr class="border-b border-border-light h-12"><td class="px-2 text-center">03</td><td class="px-3">新闻宣传</td><td class="px-3">一票否决项</td><td class="px-3">党委宣传部</td><td class="px-3">线损率</td><td class="px-3">线损率</td></tr>
+                            <tr class="border-b border-border-light h-12"><td class="px-2 text-center">04</td><td class="px-3">新闻宣传</td><td class="px-3">加减项</td><td class="px-3">党委宣传部</td><td class="px-3">电网公平开放指数</td><td class="px-3">电网公平开放指数</td></tr>
+                            <tr class="border-b border-border-light h-12"><td class="px-2 text-center">05</td><td class="px-3 text-gray-400">......</td><td class="px-3"></td><td class="px-3"></td><td class="px-3"></td><td class="px-3"></td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="flex items-center justify-between mt-4 text-sm"><div class="text-gray-500">共 658 项数据</div><div class="flex items-center gap-2"><select class="form-select w-20 text-sm"><option>10条/页</option><option>20条/页</option><option>50条/页</option></select><button class="page-item disabled"><i class="fa-solid fa-chevron-left text-xs"></i></button><button class="page-item active">1</button><span class="text-gray-400">...</span><button class="page-item">50</button><button class="page-item">51</button><button class="page-item">52</button><button class="page-item">53</button><button class="page-item">54</button><span class="text-gray-400">...</span><button class="page-item">90</button><button class="page-item"><i class="fa-solid fa-chevron-right text-xs"></i></button><span class="text-gray-500 ml-2">跳至</span><input type="text" class="form-input w-10 text-center text-sm" value="53"><span class="text-gray-500">页</span></div></div>
+            </div>
+
+            <!-- TAB4: 安全工作指标（复合表头意见建议，只读，已移除添加意见建议按钮） -->
+            <div id="tab4" class="tab-content p-5 hidden">
+                <div class="flex flex-wrap items-center gap-3 mb-4">
+                    <button class="btn-default px-3 py-1 text-sm rounded transition text-blue-500 border-blue-500" onclick="showToast('保存成功')">保存</button>
+                    <button class="btn-default px-3 py-1 text-sm rounded transition" onclick="showImportModal()">数据导入</button>
+                    <button class="btn-default px-3 py-1 text-sm rounded transition" onclick="showToast('数据导出成功')">数据导出</button>
+                    <div class="ml-4 text-sm"><span class="text-gray-500">指标体系附件：</span><span class="link-primary">2025年度基层单位关键业绩指标体系.pdf</span></div>
+                    <div class="ml-auto flex gap-2">
+                        <div class="relative"><input type="text" placeholder="输入指标名称" class="form-input w-40 pr-7 text-sm"><i class="fa-solid fa-magnifying-glass absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 text-xs"></i></div>
+                        <div class="relative"><select class="form-select w-32 pr-7 text-sm text-gray-400"><option>上级责任部门</option><option>财务部</option><option>发展部</option></select><i class="fa-solid fa-chevron-down absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none text-xs"></i></div>
+                    </div>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="detail-table w-full text-sm border border-border-light">
+                        <thead>
+                            <tr class=" h-10">
+                                <th class="text-center px-2 font-medium w-12" rowspan="2">序号</th>
+                                <th class="text-left px-3 font-medium cursor-pointer" rowspan="2" onclick="toggleSort(this)">指标类别<i class="fa-solid fa-sort sort-icon"></i></th>
+                                <th class="text-left px-3 font-medium cursor-pointer" rowspan="2" onclick="toggleSort(this)">指标名称<i class="fa-solid fa-sort sort-icon"></i></th>
+                                <th class="text-left px-3 font-medium cursor-pointer" rowspan="2" onclick="toggleSort(this)">上级责任部门<i class="fa-solid fa-sort sort-icon"></i></th>
+                                <th class="text-center px-3 font-medium" colspan="2">意见建议</th>
+                            </tr>
+                            <tr class=" h-10">
+                                <th class="text-left px-3 font-medium">意见内容</th>
+                                <th class="text-left px-3 font-medium">原因说明</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr class="border-b border-border-light h-12"><td class="px-2 text-center">01</td><td class="px-3">生产安全</td><td class="px-3">发生人身伤亡事件</td><td class="px-3">财务部</td><td class="px-3">内模利润</td><td class="px-3">内模利润</td></tr>
+                            <tr class="border-b border-border-light h-12"><td class="px-2 text-center">02</td><td class="px-3">经营安全</td><td class="px-3">发生人身伤亡事件</td><td class="px-3">发展部</td><td class="px-3">售电量</td><td class="px-3">售电量</td></tr>
+                            <tr class="border-b border-border-light h-12"><td class="px-2 text-center">03</td><td class="px-3">廉政安全</td><td class="px-3">发生人身伤亡事件</td><td class="px-3">发展部</td><td class="px-3">线损率</td><td class="px-3">线损率</td></tr>
+                            <tr class="border-b border-border-light h-12"><td class="px-2 text-center">04</td><td class="px-3">社会责任风险</td><td class="px-3">发生人身伤亡事件</td><td class="px-3">发展部</td><td class="px-3">电网公平开放指数</td><td class="px-3">电网公平开放指数</td></tr>
+                            <tr class="border-b border-border-light h-12"><td class="px-2 text-center">05</td><td class="px-3 text-gray-400">......</td><td class="px-3"></td><td class="px-3"></td><td class="px-3"></td><td class="px-3"></td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="flex items-center justify-between mt-4 text-sm"><div class="text-gray-500">共 658 项数据</div><div class="flex items-center gap-2"><select class="form-select w-20 text-sm"><option>10条/页</option><option>20条/页</option><option>50条/页</option></select><button class="page-item disabled"><i class="fa-solid fa-chevron-left text-xs"></i></button><button class="page-item active">1</button><span class="text-gray-400">...</span><button class="page-item">50</button><button class="page-item">51</button><button class="page-item">52</button><button class="page-item">53</button><button class="page-item">54</button><span class="text-gray-400">...</span><button class="page-item">90</button><button class="page-item"><i class="fa-solid fa-chevron-right text-xs"></i></button><span class="text-gray-500 ml-2">跳至</span><input type="text" class="form-input w-10 text-center text-sm" value="53"><span class="text-gray-500">页</span></div></div>
+            </div>
+
+            <!-- TAB5: 其他（复合表头意见建议，只读，已移除添加意见建议按钮） -->
+            <div id="tab5" class="tab-content p-5 hidden">
+                <div class="flex flex-wrap items-center gap-3 mb-4">
+                    <button class="btn-default px-3 py-1 text-sm rounded transition text-blue-500 border-blue-500" onclick="showToast('保存成功')">保存</button>
+                    <button class="btn-default px-3 py-1 text-sm rounded transition" onclick="showImportModal()">数据导入</button>
+                    <button class="btn-default px-3 py-1 text-sm rounded transition" onclick="showToast('数据导出成功')">数据导出</button>
+                    <div class="ml-4 text-sm"><span class="text-gray-500">指标体系附件：</span><span class="link-primary">2025年度基层单位关键业绩指标体系.pdf</span></div>
+                    <div class="ml-auto flex gap-2">
+                        <div class="relative"><input type="text" placeholder="输入指标名称" class="form-input w-40 pr-7 text-sm"><i class="fa-solid fa-magnifying-glass absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 text-xs"></i></div>
+                        <div class="relative"><select class="form-select w-32 pr-7 text-sm text-gray-400"><option>上级责任部门</option><option>财务部</option><option>发展部</option></select><i class="fa-solid fa-chevron-down absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none text-xs"></i></div>
+                    </div>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="detail-table w-full text-sm border border-border-light">
+                        <thead>
+                            <tr class=" h-10">
+                                <th class="text-center px-2 font-medium w-12" rowspan="2">序号</th>
+                                <th class="text-left px-3 font-medium cursor-pointer" rowspan="2" onclick="toggleSort(this)">方案条款/内容/指标名称<i class="fa-solid fa-sort sort-icon"></i></th>
+                                <th class="text-left px-3 font-medium cursor-pointer" rowspan="2" onclick="toggleSort(this)">上级责任部门<i class="fa-solid fa-sort sort-icon"></i></th>
+                                <th class="text-center px-3 font-medium" colspan="2">意见建议</th>
+                            </tr>
+                            <tr class=" h-10">
+                                <th class="text-left px-3 font-medium">意见内容</th>
+                                <th class="text-left px-3 font-medium">原因说明</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr class="border-b border-border-light h-12"><td class="px-2 text-center">01</td><td class="px-3">内模利润</td><td class="px-3">财务部</td><td class="px-3">内模利润</td><td class="px-3">内模利润</td></tr>
+                            <tr class="border-b border-border-light h-12"><td class="px-2 text-center">02</td><td class="px-3">售电量</td><td class="px-3">发展部</td><td class="px-3">售电量</td><td class="px-3">售电量</td></tr>
+                            <tr class="border-b border-border-light h-12"><td class="px-2 text-center">03</td><td class="px-3">线损率</td><td class="px-3">发展部</td><td class="px-3">线损率</td><td class="px-3">线损率</td></tr>
+                            <tr class="border-b border-border-light h-12"><td class="px-2 text-center">04</td><td class="px-3">电网公平开放指数</td><td class="px-3">发展部</td><td class="px-3">电网公平开放指数</td><td class="px-3">电网公平开放指数</td></tr>
+                            <tr class="border-b border-border-light h-12"><td class="px-2 text-center">05</td><td class="px-3"></td><td class="px-3"></td><td class="px-3"></td><td class="px-3"></td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="flex items-center justify-between mt-4 text-sm"><div class="text-gray-500">共 658 项数据</div><div class="flex items-center gap-2"><select class="form-select w-20 text-sm"><option>10条/页</option><option>20条/页</option><option>50条/页</option></select><button class="page-item disabled"><i class="fa-solid fa-chevron-left text-xs"></i></button><button class="page-item active">1</button><span class="text-gray-400">...</span><button class="page-item">50</button><button class="page-item">51</button><button class="page-item">52</button><button class="page-item">53</button><button class="page-item">54</button><span class="text-gray-400">...</span><button class="page-item">90</button><button class="page-item"><i class="fa-solid fa-chevron-right text-xs"></i></button><span class="text-gray-500 ml-2">跳至</span><input type="text" class="form-input w-10 text-center text-sm" value="53"><span class="text-gray-500">页</span></div></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 弹窗：审核确认 -->
+    <div id="auditModal" class="modal-overlay">
+        <div class="modal-box">
+            <div class="flex items-center justify-between p-4 border-b border-border-light">
+                <span class="text-base font-medium">审核确认</span>
+                <i class="fa-solid fa-xmark text-gray-400 cursor-pointer hover:text-gray-700" onclick="closeModal('auditModal')"></i>
+            </div>
+            <div class="p-6">
+                <p class="text-sm text-gray-700">确定要通过该条意见征集的审核吗？</p>
+            </div>
+            <div class="flex justify-end gap-2 p-4 border-t border-border-light">
+                <button class="btn-default px-4 py-1.5 text-sm rounded" onclick="closeModal('auditModal')">取消</button>
+                <button class="btn-primary px-4 py-1.5 text-sm rounded" onclick="closeModal('auditModal'); showToast('审核成功'); backToList();">确定</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 弹窗：退回确认 -->
+    <div id="returnModal" class="modal-overlay">
+        <div class="modal-box">
+            <div class="flex items-center justify-between p-4 border-b border-border-light">
+                <span class="text-base font-medium">退回确认</span>
+                <i class="fa-solid fa-xmark text-gray-400 cursor-pointer hover:text-gray-700" onclick="closeModal('returnModal')"></i>
+            </div>
+            <div class="p-6">
+                <div class="mb-3"><label class="text-sm text-gray-700">退回原因：</label></div>
+                <textarea class="form-input w-full h-24 text-sm resize-none" placeholder="请输入退回原因..."></textarea>
+            </div>
+            <div class="flex justify-end gap-2 p-4 border-t border-border-light">
+                <button class="btn-default px-4 py-1.5 text-sm rounded" onclick="closeModal('returnModal')">取消</button>
+                <button class="btn-primary px-4 py-1.5 text-sm rounded" onclick="closeModal('returnModal'); showToast('退回成功'); backToList();">确定</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 弹窗：提交确认 -->
+    <div id="submitModal" class="modal-overlay">
+        <div class="modal-box">
+            <div class="flex items-center justify-between p-4 border-b border-border-light">
+                <span class="text-base font-medium">提交确认</span>
+                <i class="fa-solid fa-xmark text-gray-400 cursor-pointer hover:text-gray-700" onclick="closeModal('submitModal')"></i>
+            </div>
+            <div class="p-6">
+                <p class="text-sm text-gray-700">确定要提交该条意见征集吗？</p>
+            </div>
+            <div class="flex justify-end gap-2 p-4 border-t border-border-light">
+                <button class="btn-default px-4 py-1.5 text-sm rounded" onclick="closeModal('submitModal')">取消</button>
+                <button class="btn-primary px-4 py-1.5 text-sm rounded" onclick="closeModal('submitModal'); showToast('提交成功'); backToList();">确定</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 弹窗：数据导入 -->
+    <div id="importModal" class="modal-overlay">
+        <div class="modal-box">
+            <div class="flex items-center justify-between p-4 border-b border-border-light">
+                <span class="text-base font-medium">数据导入</span>
+                <i class="fa-solid fa-xmark text-gray-400 cursor-pointer hover:text-gray-700" onclick="closeModal('importModal')"></i>
+            </div>
+            <div class="p-6">
+                <div class="border-2 border-dashed border-gray-300 rounded p-8 text-center cursor-pointer hover:border-blue-500 transition">
+                    <i class="fa-solid fa-cloud-arrow-up text-3xl text-gray-400 mb-2"></i>
+                    <p class="text-sm text-gray-500">点击或拖拽文件到此处上传</p>
+                    <p class="text-xs text-gray-400 mt-1">支持 .xlsx, .xls, .csv 格式</p>
+                </div>
+            </div>
+            <div class="flex justify-end gap-2 p-4 border-t border-border-light">
+                <button class="btn-default px-4 py-1.5 text-sm rounded" onclick="closeModal('importModal')">取消</button>
+                <button class="btn-primary px-4 py-1.5 text-sm rounded" onclick="closeModal('importModal'); showToast('导入成功')">确定</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentMode = 'audit';
+
+        function goDetail(mode, id) {
+            currentMode = mode;
+            document.getElementById('listView').classList.add('hidden');
+            document.getElementById('detailView').classList.remove('hidden');
+            const breadcrumb = document.getElementById('detailBreadcrumb');
+            const actions = document.getElementById('detailActions');
+            if (mode === 'audit') {
+                breadcrumb.textContent = '审核';
+                actions.innerHTML = '<button class="btn-primary px-5 py-1.5 text-sm rounded transition" onclick="showAuditModal()">审核</button><button class="btn-default px-5 py-1.5 text-sm rounded transition" onclick="showReturnModal()">退回</button>';
+            } else {
+                breadcrumb.textContent = '查看';
+                actions.innerHTML = '<button class="btn-primary px-5 py-1.5 text-sm rounded transition" onclick="showSubmitModal()">提交</button>';
+            }
+            window.scrollTo(0, 0);
+        }
+
+        function backToList() {
+            document.getElementById('detailView').classList.add('hidden');
+            document.getElementById('listView').classList.remove('hidden');
+            window.scrollTo(0, 0);
+        }
+
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.getElementById(tabId).classList.remove('hidden');
+            document.querySelectorAll('.tab-item').forEach(el => {
+                el.classList.remove('tab-active');
+                el.classList.add('tab-inactive');
+            });
+            event.target.classList.remove('tab-inactive');
+            event.target.classList.add('tab-active');
+        }
+
+        function toggleSort(el) {
+            const icon = el.querySelector('.sort-icon');
+            if (icon.classList.contains('fa-sort')) {
+                icon.classList.remove('fa-sort');
+                icon.classList.add('fa-sort-up', 'active');
+            } else if (icon.classList.contains('fa-sort-up')) {
+                icon.classList.remove('fa-sort-up');
+                icon.classList.add('fa-sort-down', 'active');
+            } else {
+                icon.classList.remove('fa-sort-down', 'active');
+                icon.classList.add('fa-sort');
+            }
+        }
+
+        function clearSearch() {
+            document.getElementById('searchDate').value = '';
+            document.getElementById('searchName').value = '';
+            document.getElementById('searchStatus').value = '';
+            showToast('已清空搜索条件');
+        }
+
+        function doSearch() {
+            showToast('搜索完成');
+        }
+
+        function showToast(msg) {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = 'toast show';
+            toast.innerHTML = '<i class="fa-solid fa-circle-check text-green-500 mr-2"></i><span>' + msg + '</span>';
+            container.appendChild(toast);
+            setTimeout(() => toast.remove(), 2000);
+        }
+
+        function showAuditModal() { document.getElementById('auditModal').classList.add('show'); }
+        function showReturnModal() { document.getElementById('returnModal').classList.add('show'); }
+        function showSubmitModal() { document.getElementById('submitModal').classList.add('show'); }
+        function showImportModal() { document.getElementById('importModal').classList.add('show'); }
+
+        function closeModal(id) {
+            document.getElementById(id).classList.remove('show');
+        }
+
+        document.querySelectorAll('.modal-overlay').forEach(overlay => {
+            overlay.addEventListener('click', function(e) {
+                if (e.target === this) closeModal(this.id);
+            });
+        });
+
+        function toggleDatePicker() {
+            const input = document.getElementById('searchDate');
+            input.value = '2026-01-01 ~ 2026-12-31';
+        }
+    </script>
+</body>
+</html>

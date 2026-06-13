@@ -1,0 +1,1403 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>基层单位意见征集</title>
+    <script src="_tailwind.js"></script>
+    <link rel="stylesheet" href="_fa/all.min.css">
+    <link rel="stylesheet" href="_list-common.css">
+    <script src="js/proto-toast.js"></script>
+    <script src="js/proto-modal.js"></script>
+    <script src="js/proto-page.js"></script>
+    <script src="js/proto-pagination.js"></script>
+    <script src="js/proto-table.js"></script>
+    <script src="js/proto-data.js"></script>
+    <script src="js/proto-confirm.js"></script>
+    <style>
+body { font-family: Arial, 'PingFang SC', 'Microsoft YaHei', sans-serif; background-color: #f5f7fa; color: #333; }
+.page-container { display: none; animation: fadeIn 0.3s ease; }
+.page-container.active { display: block; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+.btn-text.text-red-500 { color: #FF4D4F; }
+.btn-text.text-red-500:hover { color: #FF7875; background: rgba(255, 77, 79, 0.1); }
+.add-opinion-btn { width: 100%; padding: 12px; border: 1px dashed #D9D9D9; border-radius: 4px; text-align: center; color: #595959; cursor: pointer; transition: all 0.3s; background: #FAFAFA; }
+.add-opinion-btn:hover { border-color: #1890ff; color: #1890ff; background: #E6F7FF; }
+</style>
+</head>
+<body class="min-h-screen">
+    <div>
+        <!-- ==================== 主列表页 ==================== -->
+        <div id="page-list" class="page-container active p-6">
+            <!-- 搜索筛选区 -->
+            <div class="card p-5 mb-4">
+                <div class="flex flex-wrap items-center gap-4">
+                    <div class="flex items-center gap-2">
+                        <label class="text-sm text-gray-600 whitespace-nowrap">考核周期：</label>
+                        <input type="month" id="filter-period" class="form-input w-40" placeholder="请选择日期">
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <label class="text-sm text-gray-600 whitespace-nowrap">征集名称：</label>
+                        <input type="text" id="filter-name" class="form-input w-48" placeholder="请输入内容">
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <label class="text-sm text-gray-600 whitespace-nowrap">状态：</label>
+                        <select id="filter-status" class="form-select w-32">
+                            <option value="">请选择内容</option>
+                            <option value="pending">待提交</option>
+                            <option value="submitted">已提交</option>
+                            <option value="published">已发布</option>
+                        </select>
+                    </div>
+                    <div class="flex items-center gap-3 ml-auto">
+                        <button class="btn-default" onclick="resetFilter()">
+                            <i class="fas fa-undo-alt w-4 h-4"></i>
+                            清空条件
+                        </button>
+                        <button class="btn-primary" onclick="searchData()">
+                            <i class="fas fa-search w-4 h-4"></i>
+                            搜索
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 数据表格 -->
+            <div class="card overflow-hidden">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th class="w-16 text-center">序号</th>
+                            <th class="w-24">
+                                <div class="flex items-center gap-1 cursor-pointer" onclick="sortTable('period')">
+                                    考核周期
+                                    <i class="fas fa-sort w-3 h-3"></i>
+                                </div>
+                            </th>
+                            <th>征集名称</th>
+                            <th>征集模块</th>
+                            <th class="w-44">
+                                <div class="flex items-center gap-1">
+                                    基层截止时间
+                                    <div class="tooltip">
+                                        <i class="fas fa-info-circle w-4 h-4 text-blue-500 cursor-pointer"></i>
+                                        <div class="tooltip-content">超时系统将自动零报送</div>
+                                    </div>
+                                </div>
+                            </th>
+                            <th class="w-24">
+                                <div class="flex items-center gap-1 cursor-pointer" onclick="sortTable('status')">
+                                    状态
+                                    <i class="fas fa-sort w-3 h-3"></i>
+                                </div>
+                            </th>
+                            <th class="w-32 text-center">操作</th>
+                        </tr>
+                    </thead>
+                    <tbody id="list-table-body">
+                        <!-- 动态生成 -->
+                    </tbody>
+                </table>
+
+                <!-- 分页 -->
+                <div class="flex items-center justify-between px-6 py-4 border-t border-gray-100">
+                    <div class="text-sm text-gray-500">
+                        共 <span id="total-count" class="font-medium text-gray-700">0</span> 项数据
+                    </div>
+                    <div class="flex items-center gap-4">
+                        <select id="page-size" class="form-select text-sm" onchange="changePageSize()">
+                            <option value="10">10条/页</option>
+                            <option value="20">20条/页</option>
+                            <option value="50">50条/页</option>
+                            <option value="100">100条/页</option>
+                        </select>
+                        <div class="pagination" id="pagination">
+                            <!-- 动态生成 -->
+                        </div>
+                        <div class="flex items-center gap-2 text-sm">
+                            <span class="text-gray-500">跳至</span>
+                            <input type="number" id="jump-page" class="form-input w-14 text-center" min="1">
+                            <span class="text-gray-500">页</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ==================== 填报详情页 ==================== -->
+        <div id="page-fill" class="page-container">
+            <!-- 顶部信息栏 -->
+            <div class="card">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-8">
+                        <div class="info-item">
+                            <span class="info-label">征集周期：</span>
+                            <span class="info-value" id="fill-period">-</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">征集名称：</span>
+                            <span class="info-value" id="fill-name">-</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">截止时间：</span>
+                            <span class="info-value" id="fill-deadline">-</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">状态：</span>
+                            <span class="info-value" id="fill-status">-</span>
+                        </div>
+                    </div>
+                    <button class="btn-primary" onclick="submitForm()">
+                        <i class="fas fa-check w-4 h-4"></i>
+                        提交
+                    </button>
+                </div>
+            </div>
+
+            <!-- Tab导航 -->
+            <div class="bg-white rounded-t-lg border-b border-gray-200 px-6">
+                <div class="flex gap-8">
+                    <div class="tab-item active py-4 text-sm" data-tab="key" onclick="switchTab('key')">关键业绩指标</div>
+                    <div class="tab-item py-4 text-sm text-gray-600" data-tab="bonus" onclick="switchTab('bonus')">业绩争取加分</div>
+                    <div class="tab-item py-4 text-sm text-gray-600" data-tab="party" onclick="switchTab('party')">党建工作指标</div>
+                    <div class="tab-item py-4 text-sm text-gray-600" data-tab="safety" onclick="switchTab('safety')">安全工作指标</div>
+                    <div class="tab-item py-4 text-sm text-gray-600" data-tab="other" onclick="switchTab('other')">其他</div>
+                </div>
+            </div>
+
+            <!-- 操作按钮区 -->
+            <div class="bg-white px-6 py-4 border-b border-gray-100">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <button class="btn-primary" onclick="saveData()">
+                            <i class="fas fa-save w-4 h-4"></i>
+                            保存
+                        </button>
+                        <button class="btn-default" onclick="importData()">
+                            <i class="fas fa-file-import w-4 h-4"></i>
+                            数据导入
+                        </button>
+                        <button class="btn-default" onclick="exportData()">
+                            <i class="fas fa-file-export w-4 h-4"></i>
+                            数据导出
+                        </button>
+                        <span class="text-sm text-gray-500 ml-4">
+                            指标体系附件：
+                            <a href="#" class="text-blue-500 hover:underline" onclick="downloadTemplate()">2025年度基层单位关键业绩指标体系.pdf</a>
+                        </span>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <div class="relative">
+                            <i class="fas fa-search w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                            <input type="text" id="search-indicator" class="form-input pl-9 w-48" placeholder="输入指标名称" oninput="filterTable()">
+                        </div>
+                        <select id="filter-dept" class="form-select w-32" onchange="filterTable()">
+                            <option value="">上级责任部门</option>
+                            <option value="finance">财务部</option>
+                            <option value="development">发展部</option>
+                            <option value="publicity">党委宣传部</option>
+                            <option value="safety">安监部</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab内容区 -->
+            <div class="bg-white rounded-b-lg shadow-sm">
+                <!-- 关键业绩指标 -->
+                <div id="tab-content-key" class="tab-content">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th class="w-10 text-center">序号</th>
+                                <th class="w-20 required">指标类别</th>
+                                <th class="w-28 required">指标名称</th>
+                                <th class="w-24">因子名称</th>
+                                <th class="w-24 required">上级责任部门</th>
+                                <th class="w-24 required">意见分类</th>
+                                <th class="w-32 required">意见内容</th>
+                                <th class="w-32 required">原因说明</th>
+                                <th class="w-14 text-center">操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tbody-key">
+                            <!-- 动态生成 -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- 业绩争取加分 -->
+                <div id="tab-content-bonus" class="tab-content hidden">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th class="w-10 text-center">序号</th>
+                                <th class="w-28 required">加分事项</th>
+                                <th class="w-28 required">指标名称</th>
+                                <th class="w-28">因子名称/评价标准</th>
+                                <th class="w-24 required">上级责任部门</th>
+                                <th class="w-32 required">意见建议</th>
+                                <th class="w-32 required">原因说明</th>
+                                <th class="w-14 text-center">操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tbody-bonus">
+                            <!-- 动态生成 -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- 党建工作指标 -->
+                <div id="tab-content-party" class="tab-content hidden">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th class="w-10 text-center">序号</th>
+                                <th class="w-28 required">考核内容</th>
+                                <th class="w-24 required">考评方式</th>
+                                <th class="w-24 required">上级责任部门</th>
+                                <th class="w-32 required">意见建议</th>
+                                <th class="w-32 required">原因说明</th>
+                                <th class="w-14 text-center">操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tbody-party">
+                            <!-- 动态生成 -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- 安全工作指标 -->
+                <div id="tab-content-safety" class="tab-content hidden">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th class="w-10 text-center">序号</th>
+                                <th class="w-24 required">指标类别</th>
+                                <th class="w-28 required">指标名称</th>
+                                <th class="w-24 required">上级责任部门</th>
+                                <th class="w-32 required">意见建议</th>
+                                <th class="w-32 required">原因说明</th>
+                                <th class="w-14 text-center">操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tbody-safety">
+                            <!-- 动态生成 -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- 其他 -->
+                <div id="tab-content-other" class="tab-content hidden">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th class="w-10 text-center">序号</th>
+                                <th class="required">方案条款/内容/指标名称</th>
+                                <th class="w-24 required">上级责任部门</th>
+                                <th class="w-32 required">意见建议</th>
+                                <th class="w-32 required">原因说明</th>
+                                <th class="w-14 text-center">操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tbody-other">
+                            <!-- 动态生成 -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- 添加意见按钮 -->
+                <div class="p-4">
+                    <div class="add-opinion-btn" onclick="addOpinion()">
+                        <i class="fas fa-plus w-4 h-4 inline-block mr-1"></i>
+                        添加意见建议
+                    </div>
+                </div>
+
+                <!-- 分页 -->
+                <div class="flex items-center justify-between px-6 py-4 border-t border-gray-100">
+                    <div class="text-sm text-gray-500">
+                        共 <span id="fill-total-count" class="font-medium text-gray-700">0</span> 项数据
+                    </div>
+                    <div class="flex items-center gap-4">
+                        <select id="fill-page-size" class="form-select text-sm" onchange="changeFillPageSize()">
+                            <option value="10">10条/页</option>
+                            <option value="20">20条/页</option>
+                            <option value="50">50条/页</option>
+                            <option value="100">100条/页</option>
+                        </select>
+                        <div class="pagination" id="fill-pagination">
+                            <!-- 动态生成 -->
+                        </div>
+                        <div class="flex items-center gap-2 text-sm">
+                            <span class="text-gray-500">跳至</span>
+                            <input type="number" id="fill-jump-page" class="form-input w-14 text-center" min="1">
+                            <span class="text-gray-500">页</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 返回按钮 -->
+            <div class="mt-4">
+                <button class="btn-default" onclick="backToList()">
+                    <i class="fas fa-arrow-left w-4 h-4"></i>
+                    返回
+                </button>
+            </div>
+        </div>
+
+        <!-- ==================== 查看详情页 ==================== -->
+        <div id="page-view" class="page-container">
+            <!-- 顶部信息栏 -->
+            <div class="card">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-8">
+                        <div class="info-item">
+                            <span class="info-label">征集周期：</span>
+                            <span class="info-value" id="view-period">-</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">征集名称：</span>
+                            <span class="info-value" id="view-name">-</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">截止时间：</span>
+                            <span class="info-value" id="view-deadline">-</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">状态：</span>
+                            <span class="info-value" id="view-status">-</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab导航 -->
+            <div class="bg-white rounded-t-lg border-b border-gray-200 px-6">
+                <div class="flex gap-8">
+                    <div class="tab-item active py-4 text-sm" data-view-tab="key" onclick="switchViewTab('key')">关键业绩指标</div>
+                    <div class="tab-item py-4 text-sm text-gray-600" data-view-tab="bonus" onclick="switchViewTab('bonus')">业绩争取加分</div>
+                    <div class="tab-item py-4 text-sm text-gray-600" data-view-tab="party" onclick="switchViewTab('party')">党建工作指标</div>
+                    <div class="tab-item py-4 text-sm text-gray-600" data-view-tab="safety" onclick="switchViewTab('safety')">安全工作指标</div>
+                    <div class="tab-item py-4 text-sm text-gray-600" data-view-tab="other" onclick="switchViewTab('other')">其他</div>
+                </div>
+            </div>
+
+            <!-- 操作按钮区 -->
+            <div class="bg-white px-6 py-4 border-b border-gray-100">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <button class="btn-default" onclick="exportViewData()">
+                            <i class="fas fa-file-export w-4 h-4"></i>
+                            数据导出
+                        </button>
+                        <span class="text-sm text-gray-500 ml-4">
+                            指标体系附件：
+                            <a href="#" class="text-blue-500 hover:underline" onclick="downloadTemplate()">2025年度基层单位关键业绩指标体系.pdf</a>
+                        </span>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <div class="relative">
+                            <i class="fas fa-search w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                            <input type="text" id="view-search-indicator" class="form-input pl-9 w-48" placeholder="输入指标名称" oninput="filterViewTable()">
+                        </div>
+                        <select id="view-filter-dept" class="form-select w-32" onchange="filterViewTable()">
+                            <option value="">上级责任部门</option>
+                            <option value="finance">财务部</option>
+                            <option value="development">发展部</option>
+                            <option value="publicity">党委宣传部</option>
+                            <option value="safety">安监部</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab内容区 -->
+            <div class="bg-white rounded-b-lg shadow-sm">
+                <!-- 关键业绩指标 -->
+                <div id="view-tab-content-key" class="view-tab-content">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th class="w-12 text-center">序号</th>
+                                <th class="w-24">指标类别</th>
+                                <th class="w-32">指标名称</th>
+                                <th class="w-32">因子名称</th>
+                                <th class="w-28">上级责任部门</th>
+                                <th class="w-28">意见分类</th>
+                                <th class="w-40">意见内容</th>
+                                <th class="w-40">原因说明</th>
+                            </tr>
+                        </thead>
+                        <tbody id="view-tbody-key">
+                            <!-- 动态生成 -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- 业绩争取加分 -->
+                <div id="view-tab-content-bonus" class="view-tab-content hidden">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th class="w-12 text-center">序号</th>
+                                <th class="w-36">加分事项</th>
+                                <th class="w-36">指标名称</th>
+                                <th class="w-36">因子名称/评价标准</th>
+                                <th class="w-28">上级责任部门</th>
+                                <th class="w-40">意见建议</th>
+                                <th class="w-40">原因说明</th>
+                            </tr>
+                        </thead>
+                        <tbody id="view-tbody-bonus">
+                            <!-- 动态生成 -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- 党建工作指标 -->
+                <div id="view-tab-content-party" class="view-tab-content hidden">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th class="w-12 text-center">序号</th>
+                                <th class="w-32">考核内容</th>
+                                <th class="w-28">考评方式</th>
+                                <th class="w-28">上级责任部门</th>
+                                <th class="w-40">意见建议</th>
+                                <th class="w-40">原因说明</th>
+                            </tr>
+                        </thead>
+                        <tbody id="view-tbody-party">
+                            <!-- 动态生成 -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- 安全工作指标 -->
+                <div id="view-tab-content-safety" class="view-tab-content hidden">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th class="w-12 text-center">序号</th>
+                                <th class="w-28">指标类别</th>
+                                <th class="w-36">指标名称</th>
+                                <th class="w-28">上级责任部门</th>
+                                <th class="w-40">意见建议</th>
+                                <th class="w-40">原因说明</th>
+                            </tr>
+                        </thead>
+                        <tbody id="view-tbody-safety">
+                            <!-- 动态生成 -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- 其他 -->
+                <div id="view-tab-content-other" class="view-tab-content hidden">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th class="w-12 text-center">序号</th>
+                                <th>方案条款/内容/指标名称</th>
+                                <th class="w-28">上级责任部门</th>
+                                <th class="w-40">意见建议</th>
+                                <th class="w-40">原因说明</th>
+                            </tr>
+                        </thead>
+                        <tbody id="view-tbody-other">
+                            <!-- 动态生成 -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- 分页 -->
+                <div class="flex items-center justify-between px-6 py-4 border-t border-gray-100">
+                    <div class="text-sm text-gray-500">
+                        共 <span id="view-total-count" class="font-medium text-gray-700">0</span> 项数据
+                    </div>
+                    <div class="flex items-center gap-4">
+                        <select id="view-page-size" class="form-select text-sm" onchange="changeViewPageSize()">
+                            <option value="10">10条/页</option>
+                            <option value="20">20条/页</option>
+                            <option value="50">50条/页</option>
+                            <option value="100">100条/页</option>
+                        </select>
+                        <div class="pagination" id="view-pagination">
+                            <!-- 动态生成 -->
+                        </div>
+                        <div class="flex items-center gap-2 text-sm">
+                            <span class="text-gray-500">跳至</span>
+                            <input type="number" id="view-jump-page" class="form-input w-14 text-center" min="1">
+                            <span class="text-gray-500">页</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 返回按钮 -->
+            <div class="mt-4">
+                <button class="btn-default" onclick="backToList()">
+                    <i class="fas fa-arrow-left w-4 h-4"></i>
+                    返回
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 确认提交弹窗 -->
+    <div id="modal-submit" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="text-lg font-medium">确认提交</h3>
+                <button class="text-gray-400 hover:text-gray-600" onclick="closeModal('modal-submit')">
+                    <i class="fas fa-times w-5 h-5"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="flex items-start gap-3">
+                    <i class="fas fa-exclamation-circle w-6 h-6 text-orange-500 flex-shrink-0 mt-0.5"></i>
+                    <div>
+                        <p class="text-gray-800 mb-2">确定要提交该征集意见吗？</p>
+                        <p class="text-sm text-gray-500">提交后将无法修改，请确认所有信息填写正确。</p>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-default" onclick="closeModal('modal-submit')">取消</button>
+                <button class="btn-primary" onclick="confirmSubmit()">确定提交</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 保存成功弹窗 -->
+    <div id="modal-save" class="modal-overlay">
+        <div class="modal-content" style="min-width: 320px;">
+            <div class="modal-body text-center py-8">
+                <div class="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i class="fas fa-check w-6 h-6 text-green-500"></i>
+                </div>
+                <h3 class="text-lg font-medium mb-2">保存成功</h3>
+                <p class="text-sm text-gray-500">数据已保存</p>
+            </div>
+            <div class="modal-footer justify-center">
+                <button class="btn-primary" onclick="closeModal('modal-save')">确定</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 提交成功弹窗 -->
+    <div id="modal-success" class="modal-overlay">
+        <div class="modal-content" style="min-width: 320px;">
+            <div class="modal-body text-center py-8">
+                <div class="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i class="fas fa-check w-6 h-6 text-green-500"></i>
+                </div>
+                <h3 class="text-lg font-medium mb-2">提交成功</h3>
+                <p class="text-sm text-gray-500">意见征集已提交，等待审核</p>
+            </div>
+            <div class="modal-footer justify-center">
+                <button class="btn-primary" onclick="closeModal('modal-success'); backToList();">确定</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 导入弹窗 -->
+    <div id="modal-import" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="text-lg font-medium">数据导入</h3>
+                <button class="text-gray-400 hover:text-gray-600" onclick="closeModal('modal-import')">
+                    <i class="fas fa-times w-5 h-5"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
+                    <i class="fas fa-cloud-upload-alt w-12 h-12 text-gray-400 mx-auto mb-4"></i>
+                    <p class="text-gray-600 mb-2">点击或拖拽文件到此处上传</p>
+                    <p class="text-sm text-gray-400">支持 .xlsx, .xls, .csv 格式</p>
+                    <input type="file" class="hidden" id="import-file" accept=".xlsx,.xls,.csv" onchange="handleFileImport(this)">
+                    <button class="btn-default mt-4" onclick="document.getElementById('import-file').click()">
+                        选择文件
+                    </button>
+                </div>
+                <div class="mt-4 p-3 bg-blue-50 rounded text-sm text-blue-600">
+                    <i class="fas fa-info-circle w-4 h-4 inline-block mr-1"></i>
+                    请先下载导入模板，按模板格式填写数据
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-default" onclick="closeModal('modal-import')">取消</button>
+                <button class="btn-primary" onclick="downloadImportTemplate()">下载模板</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ==================== 初始化 ====================
+        document.addEventListener('DOMContentLoaded', function() {
+            initMockData();
+            renderList();
+        });
+
+        // ==================== 数据存储 ====================
+        let listData = [];
+        let currentPage = 1;
+        let pageSize = 10;
+        let totalItems = 658;
+        let currentEditId = null;
+        let currentTab = 'key';
+        let fillPageSize = 10;
+        let fillCurrentPage = 1;
+        let viewPageSize = 10;
+        let viewCurrentPage = 1;
+
+        // Tab数据存储
+        let tabData = {
+            key: [],
+            bonus: [],
+            party: [],
+            safety: [],
+            other: []
+        };
+
+        // ==================== 模拟数据生成 ====================
+        function initMockData() {
+            // 生成列表数据
+            const modules = ['关键业绩指标、安全工作指标', '关键业绩指标', '党建工作指标', '安全工作指标', '业绩争取加分'];
+            const statuses = ['pending', 'submitted', 'published'];
+            const statusTexts = { pending: '待提交', submitted: '已提交', published: '已发布' };
+            
+            for (let i = 1; i <= totalItems; i++) {
+                const status = statuses[Math.floor(Math.random() * statuses.length)];
+                listData.push({
+                    id: i,
+                    period: (2020 + Math.floor(Math.random() * 6)) + '年',
+                    name: `202${Math.floor(Math.random() * 5)}年第一轮${['第一', '第二', '第三'][Math.floor(Math.random() * 3)]}批次意见征集`,
+                    module: modules[Math.floor(Math.random() * modules.length)],
+                    deadline: `202${Math.floor(Math.random() * 3 + 5)}-${String(Math.floor(Math.random() * 12 + 1)).padStart(2, '0')}-${String(Math.floor(Math.random() * 28 + 1)).padStart(2, '0')} 18:00:00`,
+                    status: status,
+                    statusText: statusTexts[status]
+                });
+            }
+
+            // 生成Tab数据
+            generateTabData();
+        }
+
+        function generateTabData() {
+            // 关键业绩指标数据
+            const keyCategories = ['经营实力', '服务品质', '核心技术', '绿色发展'];
+            const keyIndicators = ['内模利润', '售电量', '线损率', '电网公平开放指数'];
+            const factors = ['内模利润', '售电量', '线损率', '电网公平开放指数'];
+            const opinionTypes = ['指标定义', '评价标准', '指标数据来源', '其他'];
+            
+            for (let i = 1; i <= 45; i++) {
+                tabData.key.push({
+                    id: i,
+                    category: keyCategories[Math.floor(Math.random() * keyCategories.length)],
+                    indicator: keyIndicators[Math.floor(Math.random() * keyIndicators.length)],
+                    factor: factors[Math.floor(Math.random() * factors.length)],
+                    dept: ['finance', 'development'][Math.floor(Math.random() * 2)],
+                    opinionType: opinionTypes[Math.floor(Math.random() * opinionTypes.length)],
+                    content: '',
+                    reason: ''
+                });
+            }
+
+            // 业绩争取加分数据
+            const bonusItems = ['由各单位主导/参与国家重大战略实施', '获得国家级荣誉表彰', '完成重点攻坚任务', '创新成果应用'];
+            for (let i = 1; i <= 38; i++) {
+                tabData.bonus.push({
+                    id: i,
+                    item: bonusItems[Math.floor(Math.random() * bonusItems.length)],
+                    indicator: '建设高水平人才高地',
+                    factor: '建设高水平人才高地',
+                    dept: ['finance', 'development'][Math.floor(Math.random() * 2)],
+                    suggestion: '',
+                    reason: ''
+                });
+            }
+
+            // 党建工作指标数据
+            const partyContents = ['新闻宣传', '理论武装', '意识形态', '文明创建', '统战工作'];
+            const partyMethods = ['加项', '减项', '一票否决项', '加减项'];
+            for (let i = 1; i <= 32; i++) {
+                tabData.party.push({
+                    id: i,
+                    content: partyContents[Math.floor(Math.random() * partyContents.length)],
+                    method: partyMethods[Math.floor(Math.random() * partyMethods.length)],
+                    dept: 'publicity',
+                    suggestion: '',
+                    reason: ''
+                });
+            }
+
+            // 安全工作指标数据
+            const safetyCategories = ['生产安全', '经营安全', '廉政安全', '社会责任风险'];
+            for (let i = 1; i <= 28; i++) {
+                tabData.safety.push({
+                    id: i,
+                    category: safetyCategories[Math.floor(Math.random() * safetyCategories.length)],
+                    indicator: '发生人身伤亡事件',
+                    dept: ['finance', 'development'][Math.floor(Math.random() * 2)],
+                    suggestion: '',
+                    reason: ''
+                });
+            }
+
+            // 其他数据
+            const otherItems = ['内模利润', '售电量', '线损率', '电网公平开放指数', '客户服务满意度'];
+            for (let i = 1; i <= 25; i++) {
+                tabData.other.push({
+                    id: i,
+                    name: otherItems[Math.floor(Math.random() * otherItems.length)],
+                    dept: ['finance', 'development'][Math.floor(Math.random() * 2)],
+                    suggestion: '',
+                    reason: ''
+                });
+            }
+        }
+
+        // ==================== 列表页功能 ====================
+        function renderList() {
+            const tbody = document.getElementById('list-table-body');
+            const start = (currentPage - 1) * pageSize;
+            const end = start + pageSize;
+            const pageData = listData.slice(start, end);
+
+            tbody.innerHTML = pageData.map((item, index) => `
+                <tr>
+                    <td class="text-center">${String(start + index + 1).padStart(2, '0')}</td>
+                    <td>${item.period}</td>
+                    <td>${item.name}</td>
+                    <td>${item.module}</td>
+                    <td>${item.deadline}</td>
+                    <td>
+                        <span class="status-badge status-${item.status}">${item.statusText}</span>
+                    </td>
+                    <td class="text-center">
+                        ${item.status === 'pending' ? `
+                            <button class="btn-text text-sm" onclick="goToFill(${item.id})">填报</button>
+                            <button class="btn-text text-sm" onclick="showSubmitModal(${item.id})">提交</button>
+                        ` : `
+                            <button class="btn-text text-sm" onclick="goToView(${item.id})">查看</button>
+                        `}
+                    </td>
+                </tr>
+            `).join('');
+
+            document.getElementById('total-count').textContent = totalItems;
+            renderPagination();
+        }
+
+        function renderPagination() {
+            const totalPages = Math.ceil(totalItems / pageSize);
+            const pagination = document.getElementById('pagination');
+            
+            let html = '';
+            
+            // 上一页
+            html += `<button class="page-item ${currentPage === 1 ? 'disabled' : ''}" onclick="goToPage(${currentPage - 1})">
+                <i class="fas fa-chevron-left w-4 h-4"></i>
+            </button>`;
+
+            // 页码
+            if (totalPages <= 7) {
+                for (let i = 1; i <= totalPages; i++) {
+                    html += `<button class="page-item ${i === currentPage ? 'active' : ''}" onclick="goToPage(${i})">${i}</button>`;
+                }
+            } else {
+                html += `<button class="page-item ${currentPage === 1 ? 'active' : ''}" onclick="goToPage(1)">1</button>`;
+                
+                if (currentPage > 4) {
+                    html += `<span class="px-2">...</span>`;
+                }
+
+                const startPage = Math.max(2, currentPage - 2);
+                const endPage = Math.min(totalPages - 1, currentPage + 2);
+
+                for (let i = startPage; i <= endPage; i++) {
+                    html += `<button class="page-item ${i === currentPage ? 'active' : ''}" onclick="goToPage(${i})">${i}</button>`;
+                }
+
+                if (currentPage < totalPages - 3) {
+                    html += `<span class="px-2">...</span>`;
+                }
+
+                html += `<button class="page-item ${currentPage === totalPages ? 'active' : ''}" onclick="goToPage(${totalPages})">${totalPages}</button>`;
+            }
+
+            // 下一页
+            html += `<button class="page-item ${currentPage === totalPages ? 'disabled' : ''}" onclick="goToPage(${currentPage + 1})">
+                <i class="fas fa-chevron-right w-4 h-4"></i>
+            </button>`;
+
+            pagination.innerHTML = html;
+        }
+
+        function goToPage(page) {
+            const totalPages = Math.ceil(totalItems / pageSize);
+            if (page < 1 || page > totalPages) return;
+            currentPage = page;
+            renderList();
+        }
+
+        function changePageSize() {
+            pageSize = parseInt(document.getElementById('page-size').value);
+            currentPage = 1;
+            renderList();
+        }
+
+        function resetFilter() {
+            document.getElementById('filter-period').value = '';
+            document.getElementById('filter-name').value = '';
+            document.getElementById('filter-status').value = '';
+            searchData();
+        }
+
+        function searchData() {
+            // 模拟搜索
+            currentPage = 1;
+            renderList();
+        }
+
+        function sortTable(field) {
+            // 模拟排序
+            listData.reverse();
+            renderList();
+        }
+
+        // ==================== 页面跳转 ====================
+        function showPage(pageId) {
+            document.querySelectorAll('.page-container').forEach(p => p.classList.remove('active'));
+            document.getElementById(pageId).classList.add('active');
+        }
+
+        function goToFill(id) {
+            currentEditId = id;
+            const item = listData.find(d => d.id === id);
+            if (item) {
+                document.getElementById('fill-period').textContent = item.period;
+                document.getElementById('fill-name').textContent = item.name;
+                document.getElementById('fill-deadline').textContent = item.deadline;
+                document.getElementById('fill-status').textContent = item.statusText;
+            }
+            
+            // 重置到第一个Tab
+            switchTab('key');
+            showPage('page-fill');
+        }
+
+        function goToView(id) {
+            currentEditId = id;
+            const item = listData.find(d => d.id === id);
+            if (item) {
+                document.getElementById('view-period').textContent = item.period;
+                document.getElementById('view-name').textContent = item.name;
+                document.getElementById('view-deadline').textContent = item.deadline;
+                document.getElementById('view-status').textContent = item.statusText;
+            }
+            
+            // 重置到第一个Tab并渲染只读数据
+            switchViewTab('key');
+            showPage('page-view');
+        }
+
+        function backToList() {
+            currentEditId = null;
+            showPage('page-list');
+            renderList();
+        }
+
+        // ==================== Tab切换 ====================
+        function switchTab(tab) {
+            currentTab = tab;
+            
+            // 更新Tab样式
+            document.querySelectorAll('#page-fill .tab-item').forEach(t => {
+                t.classList.remove('active');
+                t.classList.add('text-gray-600');
+            });
+            document.querySelector(`#page-fill .tab-item[data-tab="${tab}"]`).classList.add('active');
+            document.querySelector(`#page-fill .tab-item[data-tab="${tab}"]`).classList.remove('text-gray-600');
+
+            // 显示对应内容
+            document.querySelectorAll('#page-fill .tab-content').forEach(c => c.classList.add('hidden'));
+            document.getElementById(`tab-content-${tab}`).classList.remove('hidden');
+
+            // 渲染表格
+            renderFillTable(tab);
+        }
+
+        function switchViewTab(tab) {
+            // 更新Tab样式
+            document.querySelectorAll('#page-view .tab-item').forEach(t => {
+                t.classList.remove('active');
+                t.classList.add('text-gray-600');
+            });
+            document.querySelector(`#page-view .tab-item[data-view-tab="${tab}"]`).classList.add('active');
+            document.querySelector(`#page-view .tab-item[data-view-tab="${tab}"]`).classList.remove('text-gray-600');
+
+            // 显示对应内容
+            document.querySelectorAll('#page-view .view-tab-content').forEach(c => c.classList.add('hidden'));
+            document.getElementById(`view-tab-content-${tab}`).classList.remove('hidden');
+
+            // 渲染表格
+            renderViewTable(tab);
+        }
+
+        // ==================== 填报页表格渲染 ====================
+        function renderFillTable(tab) {
+            const data = tabData[tab];
+            const start = (fillCurrentPage - 1) * fillPageSize;
+            const end = start + fillPageSize;
+            const pageData = data.slice(start, end);
+            const tbody = document.getElementById(`tbody-${tab}`);
+
+            let html = '';
+            
+            if (tab === 'key') {
+                html = pageData.map((item, idx) => `
+                    <tr>
+                        <td class="text-center">${String(start + idx + 1).padStart(2, '0')}</td>
+                        <td>${item.category}</td>
+                        <td><input type="text" class="form-input w-full" value="${item.indicator}" placeholder="请输入"></td>
+                        <td>${item.factor}</td>
+                        <td>
+                            <select class="form-select w-full">
+                                <option value="finance" ${item.dept === 'finance' ? 'selected' : ''}>财务部</option>
+                                <option value="development" ${item.dept === 'development' ? 'selected' : ''}>发展部</option>
+                            </select>
+                        </td>
+                        <td>
+                            <select class="form-select w-full">
+                                <option value="指标定义" ${item.opinionType === '指标定义' ? 'selected' : ''}>指标定义</option>
+                                <option value="评价标准" ${item.opinionType === '评价标准' ? 'selected' : ''}>评价标准</option>
+                                <option value="指标数据来源" ${item.opinionType === '指标数据来源' ? 'selected' : ''}>指标数据来源</option>
+                                <option value="其他" ${item.opinionType === '其他' ? 'selected' : ''}>其他</option>
+                            </select>
+                        </td>
+                        <td><input type="text" class="form-input w-full" value="${item.content}" placeholder="请输入意见内容"></td>
+                        <td><input type="text" class="form-input w-full" value="${item.reason}" placeholder="请输入原因说明"></td>
+                        <td class="text-center">
+                            <button class="btn-text text-red-500 hover:text-red-600 p-1" onclick="deleteItem('${tab}', ${item.id})" title="删除">
+                                <i class="fas fa-trash-alt w-4 h-4"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `).join('');
+            } else if (tab === 'bonus') {
+                html = pageData.map((item, idx) => `
+                    <tr>
+                        <td class="text-center">${String(start + idx + 1).padStart(2, '0')}</td>
+                        <td>${item.item}</td>
+                        <td><input type="text" class="form-input w-full" value="${item.indicator}" placeholder="请输入"></td>
+                        <td>${item.factor}</td>
+                        <td>
+                            <select class="form-select w-full">
+                                <option value="finance" ${item.dept === 'finance' ? 'selected' : ''}>财务部</option>
+                                <option value="development" ${item.dept === 'development' ? 'selected' : ''}>发展部</option>
+                            </select>
+                        </td>
+                        <td><input type="text" class="form-input w-full" value="${item.suggestion}" placeholder="请输入意见建议"></td>
+                        <td><input type="text" class="form-input w-full" value="${item.reason}" placeholder="请输入原因说明"></td>
+                        <td class="text-center">
+                            <button class="btn-text text-red-500 hover:text-red-600 p-1" onclick="deleteItem('${tab}', ${item.id})" title="删除">
+                                <i class="fas fa-trash-alt w-4 h-4"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `).join('');
+            } else if (tab === 'party') {
+                html = pageData.map((item, idx) => `
+                    <tr>
+                        <td class="text-center">${String(start + idx + 1).padStart(2, '0')}</td>
+                        <td><input type="text" class="form-input w-full" value="${item.content}" placeholder="请输入"></td>
+                        <td>
+                            <select class="form-select w-full">
+                                <option value="加项" ${item.method === '加项' ? 'selected' : ''}>加项</option>
+                                <option value="减项" ${item.method === '减项' ? 'selected' : ''}>减项</option>
+                                <option value="一票否决项" ${item.method === '一票否决项' ? 'selected' : ''}>一票否决项</option>
+                                <option value="加减项" ${item.method === '加减项' ? 'selected' : ''}>加减项</option>
+                            </select>
+                        </td>
+                        <td>
+                            <select class="form-select w-full">
+                                <option value="publicity" ${item.dept === 'publicity' ? 'selected' : ''}>党委宣传部</option>
+                            </select>
+                        </td>
+                        <td><input type="text" class="form-input w-full" value="${item.suggestion}" placeholder="请输入意见建议"></td>
+                        <td><input type="text" class="form-input w-full" value="${item.reason}" placeholder="请输入原因说明"></td>
+                        <td class="text-center">
+                            <button class="btn-text text-red-500 hover:text-red-600 p-1" onclick="deleteItem('${tab}', ${item.id})" title="删除">
+                                <i class="fas fa-trash-alt w-4 h-4"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `).join('');
+            } else if (tab === 'safety') {
+                html = pageData.map((item, idx) => `
+                    <tr>
+                        <td class="text-center">${String(start + idx + 1).padStart(2, '0')}</td>
+                        <td>
+                            <select class="form-select w-full">
+                                <option value="生产安全" ${item.category === '生产安全' ? 'selected' : ''}>生产安全</option>
+                                <option value="经营安全" ${item.category === '经营安全' ? 'selected' : ''}>经营安全</option>
+                                <option value="廉政安全" ${item.category === '廉政安全' ? 'selected' : ''}>廉政安全</option>
+                                <option value="社会责任风险" ${item.category === '社会责任风险' ? 'selected' : ''}>社会责任风险</option>
+                            </select>
+                        </td>
+                        <td><input type="text" class="form-input w-full" value="${item.indicator}" placeholder="请输入"></td>
+                        <td>
+                            <select class="form-select w-full">
+                                <option value="finance" ${item.dept === 'finance' ? 'selected' : ''}>财务部</option>
+                                <option value="development" ${item.dept === 'development' ? 'selected' : ''}>发展部</option>
+                            </select>
+                        </td>
+                        <td><input type="text" class="form-input w-full" value="${item.suggestion}" placeholder="请输入意见建议"></td>
+                        <td><input type="text" class="form-input w-full" value="${item.reason}" placeholder="请输入原因说明"></td>
+                        <td class="text-center">
+                            <button class="btn-text text-red-500 hover:text-red-600 p-1" onclick="deleteItem('${tab}', ${item.id})" title="删除">
+                                <i class="fas fa-trash-alt w-4 h-4"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `).join('');
+            } else if (tab === 'other') {
+                html = pageData.map((item, idx) => `
+                    <tr>
+                        <td class="text-center">${String(start + idx + 1).padStart(2, '0')}</td>
+                        <td><input type="text" class="form-input w-full" value="${item.name}" placeholder="请输入"></td>
+                        <td>
+                            <select class="form-select w-full">
+                                <option value="finance" ${item.dept === 'finance' ? 'selected' : ''}>财务部</option>
+                                <option value="development" ${item.dept === 'development' ? 'selected' : ''}>发展部</option>
+                            </select>
+                        </td>
+                        <td><input type="text" class="form-input w-full" value="${item.suggestion}" placeholder="请输入意见建议"></td>
+                        <td><input type="text" class="form-input w-full" value="${item.reason}" placeholder="请输入原因说明"></td>
+                        <td class="text-center">
+                            <button class="btn-text text-red-500 hover:text-red-600 p-1" onclick="deleteItem('${tab}', ${item.id})" title="删除">
+                                <i class="fas fa-trash-alt w-4 h-4"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `).join('');
+            }
+
+            tbody.innerHTML = html;
+            document.getElementById('fill-total-count').textContent = data.length;
+            renderFillPagination(data.length);
+        }
+
+        function renderFillPagination(total) {
+            const totalPages = Math.ceil(total / fillPageSize);
+            const pagination = document.getElementById('fill-pagination');
+            
+            let html = '';
+            html += `<button class="page-item ${fillCurrentPage === 1 ? 'disabled' : ''}" onclick="goToFillPage(${fillCurrentPage - 1})">
+                <i class="fas fa-chevron-left w-4 h-4"></i>
+            </button>`;
+
+            if (totalPages <= 7) {
+                for (let i = 1; i <= totalPages; i++) {
+                    html += `<button class="page-item ${i === fillCurrentPage ? 'active' : ''}" onclick="goToFillPage(${i})">${i}</button>`;
+                }
+            } else {
+                html += `<button class="page-item ${fillCurrentPage === 1 ? 'active' : ''}" onclick="goToFillPage(1)">1</button>`;
+                if (fillCurrentPage > 4) html += `<span class="px-2">...</span>`;
+                
+                const startPage = Math.max(2, fillCurrentPage - 2);
+                const endPage = Math.min(totalPages - 1, fillCurrentPage + 2);
+                for (let i = startPage; i <= endPage; i++) {
+                    html += `<button class="page-item ${i === fillCurrentPage ? 'active' : ''}" onclick="goToFillPage(${i})">${i}</button>`;
+                }
+                
+                if (fillCurrentPage < totalPages - 3) html += `<span class="px-2">...</span>`;
+                html += `<button class="page-item ${fillCurrentPage === totalPages ? 'active' : ''}" onclick="goToFillPage(${totalPages})">${totalPages}</button>`;
+            }
+
+            html += `<button class="page-item ${fillCurrentPage === totalPages ? 'disabled' : ''}" onclick="goToFillPage(${fillCurrentPage + 1})">
+                <i class="fas fa-chevron-right w-4 h-4"></i>
+            </button>`;
+
+            pagination.innerHTML = html;
+        }
+
+        function goToFillPage(page) {
+            const total = tabData[currentTab].length;
+            const totalPages = Math.ceil(total / fillPageSize);
+            if (page < 1 || page > totalPages) return;
+            fillCurrentPage = page;
+            renderFillTable(currentTab);
+        }
+
+        function changeFillPageSize() {
+            fillPageSize = parseInt(document.getElementById('fill-page-size').value);
+            fillCurrentPage = 1;
+            renderFillTable(currentTab);
+        }
+
+        // ==================== 查看页表格渲染 ====================
+        function renderViewTable(tab) {
+            const data = tabData[tab];
+            const start = (viewCurrentPage - 1) * viewPageSize;
+            const end = start + viewPageSize;
+            const pageData = data.slice(start, end);
+            const tbody = document.getElementById(`view-tbody-${tab}`);
+
+            let html = '';
+            
+            if (tab === 'key') {
+                html = pageData.map((item, idx) => `
+                    <tr>
+                        <td class="text-center">${String(start + idx + 1).padStart(2, '0')}</td>
+                        <td>${item.category}</td>
+                        <td>${item.indicator}</td>
+                        <td>${item.factor}</td>
+                        <td>${getDeptName(item.dept)}</td>
+                        <td>${item.opinionType}</td>
+                        <td>${item.content || '-'}</td>
+                        <td>${item.reason || '-'}</td>
+                    </tr>
+                `).join('');
+            } else if (tab === 'bonus') {
+                html = pageData.map((item, idx) => `
+                    <tr>
+                        <td class="text-center">${String(start + idx + 1).padStart(2, '0')}</td>
+                        <td>${item.item}</td>
+                        <td>${item.indicator}</td>
+                        <td>${item.factor}</td>
+                        <td>${getDeptName(item.dept)}</td>
+                        <td>${item.suggestion || '-'}</td>
+                        <td>${item.reason || '-'}</td>
+                    </tr>
+                `).join('');
+            } else if (tab === 'party') {
+                html = pageData.map((item, idx) => `
+                    <tr>
+                        <td class="text-center">${String(start + idx + 1).padStart(2, '0')}</td>
+                        <td>${item.content}</td>
+                        <td>${item.method}</td>
+                        <td>${getDeptName(item.dept)}</td>
+                        <td>${item.suggestion || '-'}</td>
+                        <td>${item.reason || '-'}</td>
+                    </tr>
+                `).join('');
+            } else if (tab === 'safety') {
+                html = pageData.map((item, idx) => `
+                    <tr>
+                        <td class="text-center">${String(start + idx + 1).padStart(2, '0')}</td>
+                        <td>${item.category}</td>
+                        <td>${item.indicator}</td>
+                        <td>${getDeptName(item.dept)}</td>
+                        <td>${item.suggestion || '-'}</td>
+                        <td>${item.reason || '-'}</td>
+                    </tr>
+                `).join('');
+            } else if (tab === 'other') {
+                html = pageData.map((item, idx) => `
+                    <tr>
+                        <td class="text-center">${String(start + idx + 1).padStart(2, '0')}</td>
+                        <td>${item.name}</td>
+                        <td>${getDeptName(item.dept)}</td>
+                        <td>${item.suggestion || '-'}</td>
+                        <td>${item.reason || '-'}</td>
+                    </tr>
+                `).join('');
+            }
+
+            tbody.innerHTML = html;
+            document.getElementById('view-total-count').textContent = data.length;
+            renderViewPagination(data.length);
+        }
+
+        function getDeptName(dept) {
+            const names = { finance: '财务部', development: '发展部', publicity: '党委宣传部', safety: '安监部' };
+            return names[dept] || dept;
+        }
+
+        function renderViewPagination(total) {
+            const totalPages = Math.ceil(total / viewPageSize);
+            const pagination = document.getElementById('view-pagination');
+            
+            let html = '';
+            html += `<button class="page-item ${viewCurrentPage === 1 ? 'disabled' : ''}" onclick="goToViewPage(${viewCurrentPage - 1})">
+                <i class="fas fa-chevron-left w-4 h-4"></i>
+            </button>`;
+
+            if (totalPages <= 7) {
+                for (let i = 1; i <= totalPages; i++) {
+                    html += `<button class="page-item ${i === viewCurrentPage ? 'active' : ''}" onclick="goToViewPage(${i})">${i}</button>`;
+                }
+            } else {
+                html += `<button class="page-item ${viewCurrentPage === 1 ? 'active' : ''}" onclick="goToViewPage(1)">1</button>`;
+                if (viewCurrentPage > 4) html += `<span class="px-2">...</span>`;
+                
+                const startPage = Math.max(2, viewCurrentPage - 2);
+                const endPage = Math.min(totalPages - 1, viewCurrentPage + 2);
+                for (let i = startPage; i <= endPage; i++) {
+                    html += `<button class="page-item ${i === viewCurrentPage ? 'active' : ''}" onclick="goToViewPage(${i})">${i}</button>`;
+                }
+                
+                if (viewCurrentPage < totalPages - 3) html += `<span class="px-2">...</span>`;
+                html += `<button class="page-item ${viewCurrentPage === totalPages ? 'active' : ''}" onclick="goToViewPage(${totalPages})">${totalPages}</button>`;
+            }
+
+            html += `<button class="page-item ${viewCurrentPage === totalPages ? 'disabled' : ''}" onclick="goToViewPage(${viewCurrentPage + 1})">
+                <i class="fas fa-chevron-right w-4 h-4"></i>
+            </button>`;
+
+            pagination.innerHTML = html;
+        }
+
+        function goToViewPage(page) {
+            const total = tabData[currentTab].length;
+            const totalPages = Math.ceil(total / viewPageSize);
+            if (page < 1 || page > totalPages) return;
+            viewCurrentPage = page;
+            renderViewTable(currentTab);
+        }
+
+        function changeViewPageSize() {
+            viewPageSize = parseInt(document.getElementById('view-page-size').value);
+            viewCurrentPage = 1;
+            renderViewTable(currentTab);
+        }
+
+        // ==================== 功能操作 ====================
+        function saveData() {
+            showModal('modal-save');
+        }
+
+        function importData() {
+            showModal('modal-import');
+        }
+
+        function exportData() {
+            alert('数据导出成功！');
+        }
+
+        function exportViewData() {
+            alert('数据导出成功！');
+        }
+
+        function downloadTemplate() {
+            alert('模板下载成功！');
+        }
+
+        function downloadImportTemplate() {
+            alert('导入模板下载成功！');
+            closeModal('modal-import');
+        }
+
+        function handleFileImport(input) {
+            if (input.files && input.files[0]) {
+                alert('文件上传成功：' + input.files[0].name);
+                closeModal('modal-import');
+            }
+        }
+
+        function addOpinion() {
+            const data = tabData[currentTab];
+            const newId = data.length + 1;
+            
+            if (currentTab === 'key') {
+                data.push({ id: newId, category: '', indicator: '', factor: '', dept: 'finance', opinionType: '指标定义', content: '', reason: '' });
+            } else if (currentTab === 'bonus') {
+                data.push({ id: newId, item: '', indicator: '', factor: '', dept: 'finance', suggestion: '', reason: '' });
+            } else if (currentTab === 'party') {
+                data.push({ id: newId, content: '', method: '加项', dept: 'publicity', suggestion: '', reason: '' });
+            } else if (currentTab === 'safety') {
+                data.push({ id: newId, category: '生产安全', indicator: '', dept: 'finance', suggestion: '', reason: '' });
+            } else if (currentTab === 'other') {
+                data.push({ id: newId, name: '', dept: 'finance', suggestion: '', reason: '' });
+            }
+            
+            // 跳转到最后一页
+            fillCurrentPage = Math.ceil(data.length / fillPageSize);
+            renderFillTable(currentTab);
+        }
+
+        function deleteItem(tab, id) {
+            ProtoConfirm.show({
+                title: '删除确认',
+                message: '确定要删除这条记录吗？',
+                danger: true,
+                confirmText: '删除',
+                onConfirm: function () {
+                    const data = tabData[tab];
+                    const index = data.findIndex(item => item.id === id);
+                    if (index > -1) {
+                        data.splice(index, 1);
+                        const totalPages = Math.ceil(data.length / fillPageSize);
+                        if (fillCurrentPage > totalPages && totalPages > 0) {
+                            fillCurrentPage = totalPages;
+                        }
+                        renderFillTable(tab);
+                    }
+                }
+            });
+        }
+
+        function filterTable() {
+            // 模拟筛选
+            renderFillTable(currentTab);
+        }
+
+        function filterViewTable() {
+            // 模拟筛选
+            renderViewTable(currentTab);
+        }
+
+        // ==================== 提交功能 ====================
+        function showSubmitModal(id) {
+            currentEditId = id;
+            showModal('modal-submit');
+        }
+
+        function submitForm() {
+            showModal('modal-submit');
+        }
+
+        function confirmSubmit() {
+            if (currentEditId) {
+                const item = listData.find(d => d.id === currentEditId);
+                if (item) {
+                    item.status = 'submitted';
+                    item.statusText = '已提交';
+                }
+            }
+            closeModal('modal-submit');
+            showModal('modal-success');
+        }
+
+        // ==================== 弹窗控制 ====================
+        function showModal(modalId) {
+            document.getElementById(modalId).classList.add('show');
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.remove('show');
+        }
+
+        // 点击遮罩关闭弹窗
+        document.querySelectorAll('.modal-overlay').forEach(modal => {
+            modal.addEventListener('click', function(e) {
+                if (e.target === this) {
+                    this.classList.remove('show');
+                }
+            });
+        });
+
+        // 回车跳转页面
+        document.getElementById('jump-page')?.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                goToPage(parseInt(this.value) || 1);
+            }
+        });
+    </script>
+</body>
+</html>

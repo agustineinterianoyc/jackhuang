@@ -1,0 +1,18 @@
+spring:
+  config:
+    import:
+      # 生产环境统一从单一 dataId 加载远端配置，减少本地文件与配置中心的重复维护。
+      - optional:nacos:${spring.application.name}.yaml?group=${spring.cloud.nacos.config.group}&refreshEnabled=true
+  cloud:
+    nacos:
+      discovery:
+        # 生产环境开启服务注册，供注册中心和调用方发现当前应用。
+        enabled: true
+        register-enabled: true
+      config:
+        # 生产环境从 Nacos 拉取配置，便于集中治理和灰度调整。
+        enabled: true
+  sql:
+    init:
+      # 生产环境默认不自动执行初始化脚本，避免误写正式库。
+      mode: never

@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>首页</title>
+  <link rel="stylesheet" href="../index.css" />
+</head>
+<body>
+  <div class="proto-page">
+    <div class="proto-page-header">
+      <h1>原型首页</h1>
+      <p>用于快速说明当前原型站点包含哪些页面、流程和维护规则。</p>
+    </div>
+
+    <section class="proto-banner">
+      <span class="proto-tag">推荐</span>
+      <p>新增页面时，优先新增 `pages/*.html` 并维护 `menu.js`，不要先改入口壳文件。</p>
+    </section>
+
+    <section class="proto-section">
+      <h2>站点组成</h2>
+      <div class="proto-grid">
+        <div class="proto-card">
+          <h3>index.html</h3>
+          <p>站点入口与 layout 壳。</p>
+        </div>
+        <div class="proto-card">
+          <h3>menu.js</h3>
+          <p>页面菜单关系唯一维护点。</p>
+        </div>
+        <div class="proto-card">
+          <h3>pages/*.html</h3>
+          <p>具体页面内容，通过 iframe 加载。</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="proto-section">
+      <h2>维护步骤</h2>
+      <div class="proto-kv">
+        <dt>第 1 步</dt>
+        <dd>在 `pages/` 中新增页面 html。</dd>
+        <dt>第 2 步</dt>
+        <dd>在 `menu.js` 中注册页面 key、label、file、desc。</dd>
+        <dt>第 3 步</dt>
+        <dd>仅在出现站点级复用需求时再修改 `main.js` 或 `index.css`。</dd>
+      </div>
+    </section>
+  </div>
+</body>
+</html>

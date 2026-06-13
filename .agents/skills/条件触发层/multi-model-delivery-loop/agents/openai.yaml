@@ -1,0 +1,4 @@
+interface:
+  display_name: "Multi-Model Delivery Loop"
+  short_description: "Coordinate a planning-review role and an implementation-repair role through a semi-automatic handoff loop."
+  default_prompt: "Use multi-model-delivery-loop to coordinate the planning-review role, the implementation-repair role, and the review-repair handoff loop for the current requirement package."

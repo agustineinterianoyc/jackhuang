@@ -1,0 +1,23 @@
+# syntax=docker/dockerfile:1.7
+# Frontend dev image: Node 22 alpine, runs Vite dev server with HMR.
+# Source code is bind-mounted in compose; node_modules lives in a named volume.
+
+FROM node:22-alpine
+
+ENV LANG=C.UTF-8 \
+    LC_ALL=C.UTF-8 \
+    TZ=Asia/Shanghai
+
+WORKDIR /workspace/frontend
+
+# pre-install deps for cache; real install happens in compose entrypoint when
+# package.json changes (the named volume preserves node_modules across restarts).
+COPY code/frontend/package.json /workspace/frontend/package.json
+COPY code/frontend/package-lock.json* /workspace/frontend/
+
+RUN npm install --no-audit --no-fund --prefer-offline || true
+
+EXPOSE 5173
+
+# host 0.0.0.0 ensures the dev server is reachable from the host machine.
+CMD ["npm", "run", "dev", "--", "--host", "0.0.0.0", "--port", "5173"]

@@ -1,0 +1,1685 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>意见征集管理</title>
+    <script src="_tailwind.js"></script>
+    <link rel="stylesheet" href="_fa/all.min.css">
+    <link rel="stylesheet" href="_list-common.css">
+    <script src="js/proto-toast.js"></script>
+    <script src="js/proto-modal.js"></script>
+    <script src="js/proto-page.js"></script>
+    <script src="js/proto-pagination.js"></script>
+    <script src="js/proto-table.js"></script>
+    <script src="js/proto-data.js"></script>
+    <script src="js/proto-confirm.js"></script>
+    <style>
+        * { font-family: 'Noto Sans SC', sans-serif; box-sizing: border-box; }
+        body { background-color: #f5f7fa; color: #333; margin: 0; padding: 0; }
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; }
+        ::-webkit-scrollbar-thumb { background: #c1c1c1; border-radius: 3px; }
+        
+        /* 表格样式 */
+        .data-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+        .data-table th { background-color: #fafafa; color: #666; font-weight: 500; padding: 12px 16px; text-align: left; border-bottom: 1px solid #e8e8e8; white-space: nowrap; }
+        .data-table td { padding: 12px 16px; border-bottom: 1px solid #f0f0f0; color: #333; }
+        .data-table tbody tr:hover { background-color: #fafafa; }
+        .data-table tbody tr:last-child td { border-bottom: none; }
+        
+        /* 表单样式 */
+        .form-input { border: 1px solid #d9d9d9; border-radius: 4px; padding: 8px 12px; font-size: 14px; outline: none; transition: all 0.3s; background: #fff; width: 100%; }
+        .form-input:hover, .form-input:focus { border-color: #40a9ff; box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.1); }
+        .form-input::placeholder { color: #bfbfbf; }
+        .form-input:disabled { background: #f5f5f5; color: #999; cursor: not-allowed; }
+        
+        .form-select { border: 1px solid #d9d9d9; border-radius: 4px; padding: 8px 28px 8px 12px; font-size: 14px; outline: none; background: #fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23999' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E") no-repeat right 8px center; appearance: none; cursor: pointer; width: 100%; }
+        .form-select:hover, .form-select:focus { border-color: #40a9ff; box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.1); }
+        .form-select:disabled { background: #f5f5f5; color: #999; cursor: not-allowed; }
+        
+        .form-textarea { border: 1px solid #d9d9d9; border-radius: 4px; padding: 8px 12px; font-size: 14px; outline: none; transition: all 0.3s; background: #fff; width: 100%; resize: vertical; min-height: 80px; }
+        .form-textarea:hover, .form-textarea:focus { border-color: #40a9ff; box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.1); }
+        .form-textarea:disabled { background: #f5f5f5; color: #999; cursor: not-allowed; }
+        
+        /* 按钮样式 */
+        .btn-primary { background-color: #1890ff; color: white; border: none; border-radius: 4px; padding: 8px 20px; font-size: 14px; cursor: pointer; transition: all 0.3s; display: inline-flex; align-items: center; gap: 6px; }
+        .btn-primary:hover { background-color: #40a9ff; }
+        .btn-primary:disabled { background-color: #bfbfbf; cursor: not-allowed; }
+        
+        .btn-default { background-color: #fff; color: #666; border: 1px solid #d9d9d9; border-radius: 4px; padding: 8px 20px; font-size: 14px; cursor: pointer; transition: all 0.3s; display: inline-flex; align-items: center; gap: 6px; }
+        .btn-default:hover { color: #1890ff; border-color: #1890ff; }
+        
+        .btn-text { background: none; border: none; color: #1890ff; cursor: pointer; font-size: 14px; padding: 4px 8px; transition: all 0.3s; }
+        .btn-text:hover { color: #40a9ff; }
+        .btn-text.danger { color: #ff4d4f; }
+        .btn-text.danger:hover { color: #ff7875; }
+        
+        /* 分页样式 */
+        .pagination { display: flex; align-items: center; gap: 8px; }
+        .pagination .page-item { min-width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border: 1px solid #d9d9d9; border-radius: 4px; cursor: pointer; font-size: 14px; color: #666; background: #fff; transition: all 0.3s; padding: 0 8px; }
+        .pagination .page-item:hover { border-color: #1890ff; color: #1890ff; }
+        .pagination .page-item.active { background-color: #1890ff; color: white; border-color: #1890ff; }
+        .pagination .page-item.disabled { color: #d9d9d9; cursor: not-allowed; border-color: #d9d9d9; }
+        
+        /* 弹窗样式 */
+        .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background-color: rgba(0, 0, 0, 0.45); display: flex; align-items: center; justify-content: center; z-index: 1000; opacity: 0; visibility: hidden; transition: all 0.3s; }
+        .modal-overlay.active { opacity: 1; visibility: visible; }
+        .modal-content { background: #fff; border-radius: 4px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15); width: 420px; max-width: 90vw; max-height: 80vh; display: flex; flex-direction: column; transform: scale(0.9); transition: transform 0.3s; }
+        .modal-overlay.active .modal-content { transform: scale(1); }
+        .modal-header { padding: 12px 20px; border-bottom: 1px solid #f0f0f0; display: flex; justify-content: space-between; align-items: center; }
+        .modal-header h3 { font-size: 14px; font-weight: 500; color: #333; margin: 0; }
+        .modal-close { background: none; border: none; font-size: 16px; color: #999; cursor: pointer; padding: 4px; line-height: 1; transition: color 0.3s; }
+        .modal-close:hover { color: #666; }
+        .modal-body { padding: 16px 20px; overflow: auto; flex: 1; font-size: 13px; }
+        .modal-footer { padding: 10px 20px; border-top: 1px solid #f0f0f0; display: flex; justify-content: flex-end; gap: 8px; }
+        
+        /* 大弹窗 */
+        .modal-large .modal-content { width: 700px; max-width: 90vw; max-height: 75vh; }
+        
+        /* Tab样式 */
+        .tabs { display: flex; border-bottom: 1px solid #e8e8e8; }
+        .tab-item { padding: 12px 24px; cursor: pointer; font-size: 14px; color: #666; border-bottom: 2px solid transparent; margin-bottom: -1px; transition: all 0.3s; white-space: nowrap; }
+        .tab-item:hover { color: #1890ff; }
+        .tab-item.active { color: #1890ff; border-bottom-color: #1890ff; font-weight: 500; }
+        
+        /* 状态标签 */
+        .status-badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 12px; font-weight: 500; }
+        .status-draft { color: #999; background: #f5f5f5; border: 1px solid #d9d9d9; }
+        .status-pending { color: #fa8c16; background: #fff7e6; border: 1px solid #ffd591; }
+        .status-filling { color: #1890ff; background: #e6f7ff; border: 1px solid #91d5ff; }
+        .status-feedback { color: #722ed1; background: #f9f0ff; border: 1px solid #d3adf7; }
+        .status-completed { color: #52c41a; background: #f6ffed; border: 1px solid #b7eb8f; }
+        .status-published { color: #52c41a; background: #f6ffed; border: 1px solid #b7eb8f; }
+        
+        /* 卡片样式 */
+        .card { background: #fff; border-radius: 4px; box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05); }
+        
+        /* 页面容器 */
+        .page-container { display: none; }
+        .page-container.active { display: block; animation: fadeIn 0.3s ease; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        
+        /* 必填标记 */
+        .required::before { content: '*'; color: #ff4d4f; margin-right: 4px; }
+        
+        /* 复选框组 */
+        .checkbox-group { display: flex; flex-wrap: wrap; gap: 12px; }
+        .checkbox-item { display: flex; align-items: center; gap: 6px; cursor: pointer; padding: 4px 8px; border-radius: 4px; transition: all 0.3s; }
+        .checkbox-item:hover { background: #f0f7ff; }
+        .checkbox-item input[type="checkbox"] { cursor: pointer; }
+        
+        /* 单位分组 */
+        .unit-group { margin-bottom: 16px; }
+        .unit-group-title { font-size: 14px; color: #666; margin-bottom: 8px; font-weight: 500; }
+        .unit-group-content { display: flex; flex-wrap: wrap; gap: 8px; }
+        
+        /* 开关样式 */
+        .toggle-switch { position: relative; width: 44px; height: 22px; background-color: #bfbfbf; border-radius: 11px; cursor: pointer; transition: background-color 0.3s; flex-shrink: 0; display: inline-block; }
+        .toggle-switch.active { background-color: #1890ff; }
+        .toggle-switch::after { content: ''; position: absolute; top: 2px; left: 2px; width: 18px; height: 18px; background-color: #fff; border-radius: 50%; transition: transform 0.3s; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .toggle-switch.active::after { transform: translateX(22px); }
+        
+        /* 数字链接 */
+        .number-link { color: #1890ff; cursor: pointer; font-weight: 500; transition: color 0.3s; }
+        .number-link:hover { text-decoration: underline; }
+        
+        /* 搜索框 */
+        .search-input-wrapper { position: relative; }
+        .search-input-wrapper .search-icon { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: #bfbfbf; font-size: 14px; }
+        .search-input-wrapper input { padding-left: 32px; }
+        
+        /* 日期选择器 */
+        .date-input-wrapper { position: relative; }
+        .date-input-wrapper .date-icon { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); color: #999; font-size: 14px; pointer-events: none; }
+        
+        /* 返回按钮 */
+        .back-btn { display: inline-flex; align-items: center; gap: 6px; color: #666; cursor: pointer; font-size: 14px; padding: 6px 0; border: none; background: none; transition: color 0.3s; margin-bottom: 16px; }
+        .back-btn:hover { color: #1890ff; }
+        
+        /* 信息行 */
+        .info-row { display: flex; gap: 48px; padding: 12px 0; font-size: 14px; flex-wrap: wrap; }
+        .info-item { display: flex; gap: 8px; }
+        .info-label { color: #666; }
+        .info-value { color: #333; font-weight: 500; }
+        
+        /* 详情表格 */
+        .detail-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+        .detail-table th { background-color: #fafafa; font-weight: 500; color: #666; padding: 10px 12px; border: 1px solid #e8e8e8; text-align: center; }
+        .detail-table td { padding: 10px 12px; border: 1px solid #f0f0f0; text-align: center; }
+        .detail-table tbody tr:hover { background-color: #fafafa; }
+        
+        /* 空数据提示 */
+        .no-data { text-align: center; padding: 48px 24px; color: #999; font-size: 14px; }
+        .no-data i { font-size: 32px; margin-bottom: 12px; color: #d9d9d9; display: block; }
+        
+        /* Toast提示 */
+        .toast-container { position: fixed; top: 24px; left: 50%; transform: translateX(-50%); z-index: 2000; display: flex; flex-direction: column; gap: 8px; }
+        .toast { background: #fff; border-radius: 4px; padding: 12px 24px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); display: flex; align-items: center; gap: 8px; font-size: 14px; animation: slideDown 0.3s ease; }
+        .toast.success { border-left: 4px solid #52c41a; }
+        .toast.error { border-left: 4px solid #ff4d4f; }
+        .toast.info { border-left: 4px solid #1890ff; }
+        @keyframes slideDown { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
+        
+        /* 添加行按钮 */
+        .add-row-btn { width: 100%; padding: 12px; border: 1px dashed #d9d9d9; border-radius: 4px; text-align: center; color: #666; cursor: pointer; transition: all 0.3s; background: #fafafa; margin-top: 12px; }
+        .add-row-btn:hover { border-color: #1890ff; color: #1890ff; background: #e6f7ff; }
+        
+        /* 操作按钮组 */
+        .action-group { display: flex; gap: 0; justify-content: center; align-items: center; white-space: nowrap; }
+        .action-group .btn-text { padding: 4px 6px; white-space: nowrap; }
+        .action-group .btn-text + .btn-text::before { content: '|'; color: #e8e8e8; margin-right: 6px; margin-left: 2px; }
+        
+        /* 文件上传 */
+        .file-upload { display: inline-flex; align-items: center; gap: 8px; color: #1890ff; cursor: pointer; }
+        .file-upload:hover { text-decoration: underline; }
+        .file-link { color: #1890ff; cursor: pointer; }
+        .file-link:hover { text-decoration: underline; }
+        
+        /* 页面大小选择 */
+        .page-size-select { border: 1px solid #d9d9d9; border-radius: 4px; padding: 5px 8px; font-size: 14px; outline: none; cursor: pointer; background: #fff; }
+        
+        /* 跳转输入框 */
+        .jump-input { width: 50px; border: 1px solid #d9d9d9; border-radius: 4px; padding: 5px 8px; font-size: 14px; text-align: center; outline: none; }
+        .jump-input:focus { border-color: #40a9ff; box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.1); }
+        
+        /* 表单布局 */
+        .form-row { display: flex; gap: 24px; margin-bottom: 16px; }
+        .form-col { flex: 1; }
+        .form-label { display: block; font-size: 14px; color: #666; margin-bottom: 8px; }
+        
+        /* 只读文本 */
+        .readonly-text { padding: 8px 0; font-size: 14px; color: #333; }
+        
+        /* 工具栏 */
+        .toolbar { display: flex; align-items: center; gap: 12px; padding: 12px 0; flex-wrap: wrap; }
+        .toolbar-left { display: flex; gap: 8px; }
+        .toolbar-center { flex: 1; display: flex; align-items: center; justify-content: center; gap: 8px; }
+        .toolbar-right { display: flex; gap: 8px; }
+        
+        /* 内边距工具类 */
+        .p-6 { padding: 24px; }
+        .p-5 { padding: 20px; }
+        .p-4 { padding: 16px; }
+        .px-4 { padding-left: 16px; padding-right: 16px; }
+        .py-3 { padding-top: 12px; padding-bottom: 12px; }
+        .py-4 { padding-top: 16px; padding-bottom: 16px; }
+        .mb-4 { margin-bottom: 16px; }
+        .mb-6 { margin-bottom: 24px; }
+        .mt-4 { margin-top: 16px; }
+        .mt-6 { margin-top: 24px; }
+        .ml-auto { margin-left: auto; }
+        
+        /* Flex工具类 */
+        .flex { display: flex; }
+        .flex-wrap { flex-wrap: wrap; }
+        .items-center { align-items: center; }
+        .justify-between { justify-content: space-between; }
+        .gap-2 { gap: 8px; }
+        .gap-3 { gap: 12px; }
+        .gap-4 { gap: 16px; }
+        
+        /* 边框 */
+        .border-t { border-top: 1px solid #f0f0f0; }
+        .border-b { border-bottom: 1px solid #f0f0f0; }
+        .border { border: 1px solid #e8e8e8; }
+        .rounded { border-radius: 4px; }
+        .bg-gray-50 { background-color: #fafafa; }
+        
+        /* 文字 */
+        .text-sm { font-size: 14px; }
+        .text-lg { font-size: 18px; }
+        .text-gray-500 { color: #999; }
+        .text-gray-600 { color: #666; }
+        .text-gray-700 { color: #333; }
+        .font-medium { font-weight: 500; }
+        .whitespace-nowrap { white-space: nowrap; }
+        .text-center { text-align: center; }
+    </style>
+</head>
+<body class="min-h-screen">
+    <div class="toast-container" id="toastContainer"></div>
+
+    <!-- ==================== 页面1: 主列表页 ==================== -->
+    <div id="pageList" class="page-container active">
+        <div class="p-6">
+            <!-- 搜索筛选区 -->
+            <div class="card p-5 mb-4">
+                <div class="flex flex-wrap items-center gap-4">
+                    <div class="flex items-center gap-2">
+                        <label class="text-sm text-gray-600 whitespace-nowrap">考核周期：</label>
+                        <select class="form-select w-40" id="searchPeriod" style="width: 160px;">
+                            <option value="">请选择</option>
+                            <option value="2026">2026年</option>
+                            <option value="2025">2025年</option>
+                            <option value="2024">2024年</option>
+                            <option value="2023">2023年</option>
+                        </select>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <label class="text-sm text-gray-600 whitespace-nowrap">征集名称：</label>
+                        <div class="search-input-wrapper">
+                            <i class="fas fa-search search-icon"></i>
+                            <input type="text" class="form-input" style="width: 224px;" placeholder="请输入内容" id="searchName" onkeypress="if(event.key==='Enter')handleSearch()">
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <label class="text-sm text-gray-600 whitespace-nowrap">状态：</label>
+                        <select class="form-select w-40" id="searchStatus" style="width: 160px;">
+                            <option value="">请选择</option>
+                            <option value="draft">草稿</option>
+                            <option value="pending">待填报</option>
+                            <option value="filling">填报中</option>
+                            <option value="feedback">专业反馈中</option>
+                            <option value="completed">已完成</option>
+                            <option value="published">已发布</option>
+                        </select>
+                    </div>
+                    <div class="flex items-center gap-3 ml-auto">
+                        <button class="btn-default" onclick="clearSearch()">
+                            <i class="fas fa-undo-alt mr-1"></i>清空条件
+                        </button>
+                        <button class="btn-primary" onclick="handleSearch()">
+                            <i class="fas fa-search"></i>搜索
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 操作按钮区 -->
+            <div class="mb-4">
+                <button class="btn-primary" onclick="goToAdd()">
+                    <i class="fas fa-plus mr-1"></i>新增意见征集
+                </button>
+            </div>
+
+            <!-- 数据表格 -->
+            <div class="card">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 60px; text-align: center;">序号</th>
+                            <th style="cursor: pointer;" onclick="sortTable('period')">
+                                考核周期
+                                <span class="sort-icon" id="sort-period">
+                                    <i class="fas fa-caret-up" data-dir="asc"></i>
+                                    <i class="fas fa-caret-down" data-dir="desc"></i>
+                                </span>
+                            </th>
+                            <th>征集名称</th>
+                            <th style="text-align: center;">基层填报进度</th>
+                            <th style="text-align: center;">专业反馈进度</th>
+                            <th style="cursor: pointer; text-align: center;" onclick="sortTable('status')">
+                                状态
+                                <span class="sort-icon" id="sort-status">
+                                    <i class="fas fa-caret-up" data-dir="asc"></i>
+                                    <i class="fas fa-caret-down" data-dir="desc"></i>
+                                </span>
+                            </th>
+                            <th style="width: 140px; text-align: center;">操作</th>
+                        </tr>
+                    </thead>
+                    <tbody id="listTableBody"></tbody>
+                </table>
+
+                <!-- 分页 -->
+                <div class="flex items-center justify-between px-4 py-3 border-t">
+                    <div class="text-sm text-gray-500">
+                        共 <span id="totalCount" class="font-medium">0</span> 项数据
+                    </div>
+                    <div class="flex items-center gap-4">
+                        <select class="page-size-select" id="pageSize" onchange="changePageSize()">
+                            <option value="10">10条/页</option>
+                            <option value="20">20条/页</option>
+                            <option value="50">50条/页</option>
+                            <option value="100">100条/页</option>
+                        </select>
+                        <div class="pagination" id="pagination"></div>
+                        <div class="flex items-center gap-2 text-sm text-gray-600">
+                            <span>跳至</span>
+                            <input type="number" class="jump-input" id="jumpPage" min="1" onkeypress="handleJump(event)">
+                            <span>页</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== 页面2: 新增/编辑页 ==================== -->
+    <div id="pageEdit" class="page-container">
+        <div class="p-6">
+            <button class="back-btn" onclick="goBack()">
+                <i class="fas fa-arrow-left"></i>
+                <span>返回列表</span>
+            </button>
+
+            <div class="card p-6">
+                <h2 class="text-lg font-medium mb-6" id="editTitle">新增意见征集</h2>
+                
+                <!-- 基本信息 -->
+                <div class="form-row">
+                    <div class="form-col">
+                        <label class="form-label required">意见征集名称</label>
+                        <input type="text" class="form-input" id="editName" placeholder="请输入内容" maxlength="100">
+                    </div>
+                    <div class="form-col">
+                        <label class="form-label required">考核周期</label>
+                        <select class="form-select" id="editPeriod">
+                            <option value="">请选择</option>
+                            <option value="2026">2026年</option>
+                            <option value="2025">2025年</option>
+                            <option value="2024">2024年</option>
+                            <option value="2023">2023年</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- 征集对象 -->
+                <div class="mb-4">
+                    <label class="form-label required">征集对象</label>
+                    <div class="p-4 border rounded">
+                        <!-- 供电单位 -->
+                        <div class="unit-group">
+                            <div class="unit-group-title">供电单位（31家）</div>
+                            <div class="unit-group-content">
+                                <label class="checkbox-item"><input type="checkbox" class="unit-checkbox" data-group="power" value="市区公司">市区公司</label>
+                                <label class="checkbox-item"><input type="checkbox" class="unit-checkbox" data-group="power" value="市北公司">市北公司</label>
+                                <label class="checkbox-item"><input type="checkbox" class="unit-checkbox" data-group="power" value="市南公司">市南公司</label>
+                                <label class="checkbox-item"><input type="checkbox" class="unit-checkbox" data-group="power" value="城东公司">城东公司</label>
+                                <label class="checkbox-item"><input type="checkbox" class="unit-checkbox" data-group="power" value="城西公司">城西公司</label>
+                                <label class="checkbox-item"><input type="checkbox" class="unit-checkbox" data-group="power" value="城南公司">城南公司</label>
+                                <label class="checkbox-item"><input type="checkbox" class="unit-checkbox" data-group="power" value="城北公司">城北公司</label>
+                                <label class="checkbox-item"><input type="checkbox" class="unit-checkbox" data-group="power" value="开发区公司">开发区公司</label>
+                                <label class="checkbox-item"><input type="checkbox" class="unit-checkbox" data-group="power" value="高新区公司">高新区公司</label>
+                                <label class="checkbox-item"><input type="checkbox" class="unit-checkbox" data-group="power" value="港区公司">港区公司</label>
+                            </div>
+                        </div>
+                        <!-- 业务支撑单位 -->
+                        <div class="unit-group">
+                            <div class="unit-group-title">业务支撑单位（12家）</div>
+                            <div class="unit-group-content">
+                                <label class="checkbox-item"><input type="checkbox" class="unit-checkbox" data-group="support" value="电科院">电科院</label>
+                                <label class="checkbox-item"><input type="checkbox" class="unit-checkbox" data-group="support" value="经研院">经研院</label>
+                                <label class="checkbox-item"><input type="checkbox" class="unit-checkbox" data-group="support" value="信通公司">信通公司</label>
+                                <label class="checkbox-item"><input type="checkbox" class="unit-checkbox" data-group="support" value="物资公司">物资公司</label>
+                                <label class="checkbox-item"><input type="checkbox" class="unit-checkbox" data-group="support" value="党校">党校</label>
+                                <label class="checkbox-item"><input type="checkbox" class="unit-checkbox" data-group="support" value="技培">技培</label>
+                            </div>
+                        </div>
+                        <!-- 其他单位 -->
+                        <div class="unit-group">
+                            <div class="unit-group-title">其他单位（7家）</div>
+                            <div class="unit-group-content">
+                                <label class="checkbox-item"><input type="checkbox" class="unit-checkbox" data-group="other" value="综能公司">综能公司</label>
+                                <label class="checkbox-item"><input type="checkbox" class="unit-checkbox" data-group="other" value="电动汽车">电动汽车</label>
+                                <label class="checkbox-item"><input type="checkbox" class="unit-checkbox" data-group="other" value="思极">思极</label>
+                                <label class="checkbox-item"><input type="checkbox" class="unit-checkbox" data-group="other" value="光明物业">光明物业</label>
+                                <label class="checkbox-item"><input type="checkbox" class="unit-checkbox" data-group="other" value="设计院">设计院</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 截止时间 -->
+                <div class="form-row">
+                    <div class="form-col">
+                        <label class="form-label required">基层截止时间</label>
+                        <div class="date-input-wrapper">
+                            <input type="text" class="form-input" id="editGrassrootsDeadline" placeholder="请选择日期" readonly>
+                            <i class="fas fa-calendar-alt date-icon"></i>
+                        </div>
+                    </div>
+                    <div class="form-col">
+                        <label class="form-label required">专业截止时间</label>
+                        <div class="date-input-wrapper">
+                            <input type="text" class="form-input" id="editProfessionalDeadline" placeholder="请选择日期" readonly>
+                            <i class="fas fa-calendar-alt date-icon"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 通知内容和备注 -->
+                <div class="form-row">
+                    <div class="form-col">
+                        <label class="form-label">通知内容</label>
+                        <textarea class="form-textarea" id="editNotice" placeholder="请输入内容" rows="4"></textarea>
+                    </div>
+                    <div class="form-col">
+                        <label class="form-label">备注</label>
+                        <textarea class="form-textarea" id="editRemark" placeholder="请输入内容" rows="4"></textarea>
+                    </div>
+                </div>
+
+                <!-- 征集模块 -->
+                <div class="mt-6">
+                    <label class="form-label required">征集模块</label>
+                    <table class="data-table" id="moduleTable">
+                        <thead>
+                            <tr>
+                                <th style="width: 60px; text-align: center;">序号</th>
+                                <th style="width: 150px;">征集模块</th>
+                                <th style="width: 150px;">模块别称</th>
+                                <th>指标体系附件</th>
+                                <th style="width: 100px; text-align: center;">排序</th>
+                                <th style="width: 80px; text-align: center;">操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="moduleTableBody"></tbody>
+                    </table>
+                    <div class="add-row-btn" onclick="addModuleRow()">
+                        <i class="fas fa-plus mr-1"></i>添加征集模块
+                    </div>
+                </div>
+
+                <!-- 底部按钮 -->
+                <div class="flex items-center gap-4 mt-6 pt-4 border-t">
+                    <button class="btn-primary" id="startCollectionBtn" onclick="showStartModal()">
+                        <i class="fas fa-play mr-1"></i>开启征集
+                    </button>
+                    <button class="btn-default" onclick="saveDraft()">
+                        <i class="fas fa-save mr-1"></i>保存
+                    </button>
+                    <button class="btn-default" onclick="goBack()">
+                        取消
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== 页面3: 查看页 ==================== -->
+    <div id="pageView" class="page-container">
+        <div class="p-6">
+            <button class="back-btn" onclick="goBack()">
+                <i class="fas fa-arrow-left"></i>
+                <span>返回列表</span>
+            </button>
+
+            <div class="card p-6">
+                <h2 class="text-lg font-medium mb-6">查看意见征集</h2>
+                
+                <!-- 基本信息 -->
+                <div class="form-row">
+                    <div class="form-col">
+                        <label class="form-label">意见征集名称</label>
+                        <div class="readonly-text" id="viewName">-</div>
+                    </div>
+                    <div class="form-col">
+                        <label class="form-label">考核周期</label>
+                        <div class="readonly-text" id="viewPeriod">-</div>
+                    </div>
+                </div>
+
+                <!-- 征集对象 -->
+                <div class="mb-4">
+                    <label class="form-label">征集对象</label>
+                    <div class="p-4 border rounded bg-gray-50">
+                        <div class="unit-group">
+                            <div class="unit-group-title">供电单位（31家）</div>
+                            <div class="unit-group-content" id="viewPowerUnits">-</div>
+                        </div>
+                        <div class="unit-group">
+                            <div class="unit-group-title">业务支撑单位（12家）</div>
+                            <div class="unit-group-content" id="viewSupportUnits">-</div>
+                        </div>
+                        <div class="unit-group">
+                            <div class="unit-group-title">其他单位（7家）</div>
+                            <div class="unit-group-content" id="viewOtherUnits">-</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 截止时间 -->
+                <div class="form-row">
+                    <div class="form-col">
+                        <label class="form-label">基层截止时间</label>
+                        <div class="readonly-text" id="viewGrassrootsDeadline">-</div>
+                    </div>
+                    <div class="form-col">
+                        <label class="form-label">专业截止时间</label>
+                        <div class="readonly-text" id="viewProfessionalDeadline">-</div>
+                    </div>
+                </div>
+
+                <!-- 通知内容和备注 -->
+                <div class="form-row">
+                    <div class="form-col">
+                        <label class="form-label">通知内容</label>
+                        <div class="readonly-text" id="viewNotice">-</div>
+                    </div>
+                    <div class="form-col">
+                        <label class="form-label">备注</label>
+                        <div class="readonly-text" id="viewRemark">-</div>
+                    </div>
+                </div>
+
+                <!-- 征集模块 -->
+                <div class="mt-6">
+                    <label class="form-label">征集模块</label>
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th style="width: 60px; text-align: center;">序号</th>
+                                <th style="width: 150px;">征集模块</th>
+                                <th style="width: 150px;">模块别称</th>
+                                <th>指标体系附件</th>
+                                <th style="width: 100px; text-align: center;">排序</th>
+                            </tr>
+                        </thead>
+                        <tbody id="viewModuleTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== 页面4: 发布页 ==================== -->
+    <div id="pagePublish" class="page-container">
+        <div class="p-6">
+            <button class="back-btn" onclick="goBack()">
+                <i class="fas fa-arrow-left"></i>
+                <span>返回列表</span>
+            </button>
+
+            <!-- 顶部信息栏 -->
+            <div class="card p-5 mb-4">
+                <div class="info-row">
+                    <div class="info-item">
+                        <span class="info-label">征集周期：</span>
+                        <span class="info-value" id="publishPeriod">2026年</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">征集名称：</span>
+                        <span class="info-value" id="publishName">2026年第一轮第一批次意见征集</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">状态：</span>
+                        <span class="info-value" id="publishStatus">待发布</span>
+                    </div>
+                </div>
+                <div class="mt-4 flex items-center gap-3">
+                    <button class="btn-primary" onclick="handlePublish()">
+                        <i class="fas fa-upload mr-1"></i>发布
+                    </button>
+                    <button class="btn-default" onclick="openProfessionalFeedback()">
+                        <i class="fas fa-comments mr-1"></i>开启专业反馈
+                    </button>
+                    <button class="btn-default" onclick="exportReport()">
+                        <i class="fas fa-file-export mr-1"></i>导出报表
+                    </button>
+                </div>
+            </div>
+
+            <!-- Tab页 -->
+            <div class="card">
+                <div class="tabs px-4" id="publishTabs">
+                    <div class="tab-item active" data-tab="performance" onclick="switchPublishTab('performance')">关键业绩指标</div>
+                    <div class="tab-item" data-tab="bonus" onclick="switchPublishTab('bonus')">业绩争取加分</div>
+                    <div class="tab-item" data-tab="party" onclick="switchPublishTab('party')">党建工作指标</div>
+                    <div class="tab-item" data-tab="safety" onclick="switchPublishTab('safety')">安全工作指标</div>
+                </div>
+
+                <div class="px-4 pb-4">
+                    <!-- 工具栏 -->
+                    <div class="toolbar">
+                        <div class="toolbar-left">
+                            <button class="btn-default" onclick="handleSavePublish()"><i class="fas fa-save mr-1"></i>保存</button>
+                            <button class="btn-default" onclick="handleImportPublish()"><i class="fas fa-file-import mr-1"></i>数据导入</button>
+                            <button class="btn-default" onclick="handleExportPublish()"><i class="fas fa-file-export mr-1"></i>数据导出</button>
+                        </div>
+                        <div class="toolbar-center">
+                            <span class="text-sm text-gray-600">指标体系附件：</span>
+                            <a href="#" class="file-link text-sm" onclick="downloadAttachment()">2025年度基层单位关键业绩指标体系.pdf</a>
+                        </div>
+                        <div class="toolbar-right">
+                            <div class="search-input-wrapper">
+                                <i class="fas fa-search search-icon"></i>
+                                <input type="text" class="form-input" style="width: 192px;" placeholder="输入指标名称" id="publishSearchName" oninput="filterPublishTable()">
+                            </div>
+                            <select class="form-select" id="publishSearchUnit" onchange="filterPublishTable()">
+                                <option value="">反馈意见单位</option>
+                                <option value="市区公司">市区公司</option>
+                                <option value="市北公司">市北公司</option>
+                                <option value="市南公司">市南公司</option>
+                                <option value="电科院">电科院</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- 关键业绩指标 -->
+                    <div id="publish-tab-performance" class="publish-tab-content">
+                        <table class="detail-table w-full">
+                            <thead>
+                                <tr>
+                                    <th rowspan="2" style="width: 50px;">序号</th>
+                                    <th rowspan="2">指标类别</th>
+                                    <th rowspan="2">指标名称</th>
+                                    <th rowspan="2">因子名称</th>
+                                    <th rowspan="2">反馈意见单位</th>
+                                    <th colspan="3">意见建议</th>
+                                    <th colspan="2">意见采纳说明</th>
+                                </tr>
+                                <tr>
+                                    <th>意见分类</th>
+                                    <th>意见内容</th>
+                                    <th>原因说明</th>
+                                    <th class="required">是否采纳</th>
+                                    <th class="required">意见采纳说明</th>
+                                </tr>
+                            </thead>
+                            <tbody id="publishPerformanceBody"></tbody>
+                        </table>
+                    </div>
+
+                    <!-- 业绩争取加分 -->
+                    <div id="publish-tab-bonus" class="publish-tab-content" style="display: none;">
+                        <table class="detail-table w-full">
+                            <thead>
+                                <tr>
+                                    <th rowspan="2" style="width: 50px;">序号</th>
+                                    <th rowspan="2">加分事项</th>
+                                    <th rowspan="2">指标名称</th>
+                                    <th rowspan="2">因子名称/评价标准</th>
+                                    <th rowspan="2">反馈意见单位</th>
+                                    <th rowspan="2">意见建议</th>
+                                    <th rowspan="2">原因说明</th>
+                                    <th colspan="2">意见采纳说明</th>
+                                </tr>
+                                <tr>
+                                    <th class="required">是否采纳</th>
+                                    <th class="required">意见采纳说明</th>
+                                </tr>
+                            </thead>
+                            <tbody id="publishBonusBody"></tbody>
+                        </table>
+                    </div>
+
+                    <!-- 党建工作指标 -->
+                    <div id="publish-tab-party" class="publish-tab-content" style="display: none;">
+                        <table class="detail-table w-full">
+                            <thead>
+                                <tr>
+                                    <th rowspan="2" style="width: 50px;">序号</th>
+                                    <th rowspan="2">考核内容</th>
+                                    <th rowspan="2">考评方式</th>
+                                    <th rowspan="2">反馈意见单位</th>
+                                    <th rowspan="2">意见建议</th>
+                                    <th rowspan="2">原因说明</th>
+                                    <th colspan="2">意见采纳说明</th>
+                                </tr>
+                                <tr>
+                                    <th class="required">是否采纳</th>
+                                    <th class="required">意见采纳说明</th>
+                                </tr>
+                            </thead>
+                            <tbody id="publishPartyBody"></tbody>
+                        </table>
+                    </div>
+
+                    <!-- 安全工作指标 -->
+                    <div id="publish-tab-safety" class="publish-tab-content" style="display: none;">
+                        <table class="detail-table w-full">
+                            <thead>
+                                <tr>
+                                    <th rowspan="2" style="width: 50px;">序号</th>
+                                    <th rowspan="2">方案条款/内容/指标名称</th>
+                                    <th rowspan="2">反馈意见单位</th>
+                                    <th rowspan="2">意见建议</th>
+                                    <th rowspan="2">原因说明</th>
+                                    <th colspan="2">意见采纳说明</th>
+                                </tr>
+                                <tr>
+                                    <th class="required">是否采纳</th>
+                                    <th class="required">意见采纳说明</th>
+                                </tr>
+                            </thead>
+                            <tbody id="publishSafetyBody"></tbody>
+                        </table>
+                    </div>
+
+                    <!-- 分页 -->
+                    <div class="flex items-center justify-between mt-4 pt-3 border-t">
+                        <div class="text-sm text-gray-500">
+                            共 <span class="font-medium" id="publishTotalCount">0</span> 项数据
+                        </div>
+                        <div class="flex items-center gap-4">
+                            <select class="page-size-select" id="publishPageSize" onchange="changePublishPageSize()">
+                                <option value="10">10条/页</option>
+                                <option value="20">20条/页</option>
+                                <option value="50">50条/页</option>
+                            </select>
+                            <div class="pagination" id="publishPagination"></div>
+                            <div class="flex items-center gap-2 text-sm text-gray-600">
+                                <span>跳至</span>
+                                <input type="number" class="jump-input" id="publishJumpPage" min="1" onkeypress="handlePublishJump(event)">
+                                <span>页</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== 弹窗: 开启征集确认 ==================== -->
+    <div class="modal-overlay" id="startModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>确认开启征集</h3>
+                <button class="modal-close" onclick="closeStartModal()"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body">
+                <p class="text-gray-700">确认开启征集吗？开启后不可再编辑意见征集信息。</p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-default" onclick="closeStartModal()">取消</button>
+                <button class="btn-primary" onclick="confirmStart()">确定</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== 弹窗: 删除确认 ==================== -->
+    <div class="modal-overlay" id="deleteModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>确认删除</h3>
+                <button class="modal-close" onclick="closeDeleteModal()"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body">
+                <p class="text-gray-700">确认删除吗？删除后不可进行撤销操作。</p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-default" onclick="closeDeleteModal()">取消</button>
+                <button class="btn-primary" onclick="confirmDelete()">确定</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== 弹窗: 基层填报进度 ==================== -->
+    <div class="modal-overlay modal-large" id="grassrootsProgressModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>基层填报进度</h3>
+                <button class="modal-close" onclick="closeGrassrootsProgressModal()"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-4 flex items-center gap-4">
+                    <button class="btn-primary" onclick="remindAllUnits()">
+                        <i class="fas fa-bell mr-1"></i>一键提醒
+                    </button>
+                    <div class="search-input-wrapper">
+                        <i class="fas fa-search search-icon"></i>
+                        <input type="text" class="form-input" style="width: 192px;" placeholder="输入单位名称" id="grassrootsSearchName">
+                    </div>
+                    <select class="form-select" style="width: 128px;" id="grassrootsSearchStatus">
+                        <option value="">提交状态</option>
+                        <option value="submitted">已提交</option>
+                        <option value="unsubmitted">未提交</option>
+                    </select>
+                </div>
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 60px; text-align: center;">序号</th>
+                            <th>单位名称</th>
+                            <th>单位类型</th>
+                            <th style="text-align: center;">填报状态</th>
+                            <th style="text-align: center;">提交状态</th>
+                            <th>提交时间</th>
+                            <th style="text-align: center;">审核状态</th>
+                            <th style="text-align: center;">操作</th>
+                        </tr>
+                    </thead>
+                    <tbody id="grassrootsProgressBody"></tbody>
+                </table>
+                <div class="flex items-center justify-between mt-4">
+                    <div class="text-sm text-gray-500">
+                        共 <span id="grassrootsTotalCount">0</span> 项数据
+                    </div>
+                    <div class="flex items-center gap-4">
+                        <select class="page-size-select" id="grassrootsPageSize">
+                            <option value="10">10条/页</option>
+                            <option value="20">20条/页</option>
+                            <option value="50">50条/页</option>
+                        </select>
+                        <div class="pagination" id="grassrootsPagination"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== 弹窗: 专业反馈进度 ==================== -->
+    <div class="modal-overlay modal-large" id="professionalProgressModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>专业反馈进度</h3>
+                <button class="modal-close" onclick="closeProfessionalProgressModal()"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-4 flex items-center gap-4">
+                    <button class="btn-primary" onclick="remindAllDepts()">
+                        <i class="fas fa-bell mr-1"></i>一键提醒
+                    </button>
+                    <div class="search-input-wrapper">
+                        <i class="fas fa-search search-icon"></i>
+                        <input type="text" class="form-input" style="width: 192px;" placeholder="输入部门名称" id="professionalSearchName">
+                    </div>
+                    <select class="form-select" style="width: 128px;" id="professionalSearchStatus">
+                        <option value="">提交状态</option>
+                        <option value="submitted">已提交</option>
+                        <option value="unsubmitted">未提交</option>
+                    </select>
+                </div>
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 60px; text-align: center;">序号</th>
+                            <th>专业部门</th>
+                            <th style="text-align: center;">提交状态</th>
+                            <th style="text-align: center;">审核状态</th>
+                            <th style="text-align: center;">操作</th>
+                        </tr>
+                    </thead>
+                    <tbody id="professionalProgressBody"></tbody>
+                </table>
+                <div class="flex items-center justify-between mt-4">
+                    <div class="text-sm text-gray-500">
+                        共 <span id="professionalTotalCount">0</span> 项数据
+                    </div>
+                    <div class="flex items-center gap-4">
+                        <select class="page-size-select" id="professionalPageSize">
+                            <option value="10">10条/页</option>
+                            <option value="20">20条/页</option>
+                            <option value="50">50条/页</option>
+                        </select>
+                        <div class="pagination" id="professionalPagination"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ==================== 数据定义 ====================
+        const allListData = [
+            { id: 1, period: '2026年', name: '2026年第一轮第一批次意见征集', grassrootsProgress: '25/50', professionalProgress: '12/20', status: 'draft', statusText: '草稿' },
+            { id: 2, period: '2025年', name: '2025年度第二轮意见征集', grassrootsProgress: '50/50', professionalProgress: '20/20', status: 'published', statusText: '已发布' },
+            { id: 3, period: '2025年', name: '2025年度第一轮意见征集', grassrootsProgress: '48/50', professionalProgress: '18/20', status: 'completed', statusText: '已完成' },
+            { id: 4, period: '2024年', name: '2024年度第三轮意见征集', grassrootsProgress: '50/50', professionalProgress: '15/20', status: 'feedback', statusText: '专业反馈中' },
+            { id: 5, period: '2024年', name: '2024年度第二轮意见征集', grassrootsProgress: '45/50', professionalProgress: '-', status: 'filling', statusText: '填报中' },
+            { id: 6, period: '2024年', name: '2024年度第一轮意见征集', grassrootsProgress: '50/50', professionalProgress: '20/20', status: 'published', statusText: '已发布' },
+            { id: 7, period: '2023年', name: '2023年度第二轮意见征集', grassrootsProgress: '50/50', professionalProgress: '20/20', status: 'published', statusText: '已发布' },
+            { id: 8, period: '2023年', name: '2023年度第一轮意见征集', grassrootsProgress: '50/50', professionalProgress: '20/20', status: 'published', statusText: '已发布' },
+        ];
+
+        // 征集模块选项
+        const moduleOptions = [
+            { value: 'performance', label: '关键业绩指标' },
+            { value: 'bonus', label: '业绩争取加分' },
+            { value: 'party', label: '党建工作指标' },
+            { value: 'safety', label: '安全工作指标' },
+            { value: 'other', label: '其他' }
+        ];
+
+        // 发布页面数据
+        const publishData = {
+            performance: [
+                { id: 1, category: '经营实力', name: '内模利润', factor: '内模利润', unit: '市区公司', opinionType: '指标定义', opinion: '建议调整内模利润计算口径', reason: '新能源业务占比提升', adopted: false, adoptDesc: '' },
+                { id: 2, category: '客户服务', name: '客户满意度', factor: '第三方测评', unit: '市北公司', opinionType: '评价标准', opinion: '建议增加线上服务权重', reason: '线上业务占比超60%', adopted: true, adoptDesc: '同意调整权重' },
+                { id: 3, category: '经营实力', name: '营业收入', factor: '主营业务收入', unit: '市南公司', opinionType: '指标定义', opinion: '建议纳入综合能源收入', reason: '综合能源业务增长', adopted: true, adoptDesc: '同意纳入' },
+                { id: 4, category: '创新发展', name: '数字化转型', factor: '数字化项目完成率', unit: '电科院', opinionType: '评价标准', opinion: '建议增加数据治理维度', reason: '数据质量是基础', adopted: false, adoptDesc: '' },
+                { id: 5, category: '经营实力', name: '成本控制', factor: '单位供电成本', unit: '市区公司', opinionType: '指标定义', opinion: '建议细化成本分类', reason: '精准反映管控能力', adopted: true, adoptDesc: '同意细化' },
+            ],
+            bonus: [
+                { id: 1, bonusItem: '经营实力', name: '内模利润', factor: '超额完成利润目标', unit: '市区公司', opinion: '建议超额部分1.5倍加分', reason: '激励超额完成目标', adopted: false, adoptDesc: '' },
+                { id: 2, bonusItem: '客户服务', name: '客户满意度', factor: '满意度排名前列', unit: '市北公司', opinion: '建议前三名额外加分', reason: '树立服务标杆', adopted: true, adoptDesc: '前三名加5/3/2分' },
+                { id: 3, bonusItem: '创新发展', name: '数字化转型', factor: '获得省部级奖项', unit: '市南公司', opinion: '建议获奖加分', reason: '鼓励创新创优', adopted: false, adoptDesc: '' },
+            ],
+            party: [
+                { id: 1, content: '党委主体责任落实', method: '加项', unit: '市区公司', opinion: '建议细化考核清单', reason: '清单化管理便于执行', adopted: true, adoptDesc: '同意细化' },
+                { id: 2, content: '党风廉政建设', method: '一票否决项', unit: '市北公司', opinion: '建议增加廉洁风险评价', reason: '预防为主', adopted: false, adoptDesc: '' },
+                { id: 3, content: '基层组织建设', method: '加项', unit: '市南公司', opinion: '建议增加标准化评价', reason: '夯实基层基础', adopted: true, adoptDesc: '同意增加' },
+            ],
+            safety: [
+                { id: 1, clause: '发生人身伤亡事故', unit: '市区公司', opinion: '建议区分责任事故', reason: '更公平反映管理水平', adopted: true, adoptDesc: '同意区分' },
+                { id: 2, clause: '发生重大设备事故', unit: '市北公司', opinion: '建议考虑设备老化因素', reason: '老旧设备故障率高', adopted: false, adoptDesc: '' },
+                { id: 3, clause: '发生网络安全事件', unit: '市南公司', opinion: '建议分级分类考核', reason: '不同级别影响差异大', adopted: true, adoptDesc: '同意分级' },
+            ]
+        };
+
+        // 基层填报进度数据
+        const grassrootsProgressData = [
+            { id: 1, name: '市区公司', type: '供电单位', fillStatus: '已填报', submitStatus: '已提交', submitTime: '2025-08-15 14:30:00', auditStatus: '已通过' },
+            { id: 2, name: '市北公司', type: '供电单位', fillStatus: '已填报', submitStatus: '已提交', submitTime: '2025-08-15 16:45:00', auditStatus: '待审核' },
+            { id: 3, name: '市南公司', type: '供电单位', fillStatus: '已填报', submitStatus: '未提交', submitTime: '-', auditStatus: '-' },
+            { id: 4, name: '电科院', type: '业务支撑单位', fillStatus: '已填报', submitStatus: '已提交', submitTime: '2025-08-14 09:20:00', auditStatus: '已通过' },
+            { id: 5, name: '经研院', type: '业务支撑单位', fillStatus: '未填报', submitStatus: '未提交', submitTime: '-', auditStatus: '-' },
+        ];
+
+        // 专业反馈进度数据
+        const professionalProgressData = [
+            { id: 1, name: '财务部', submitStatus: '已提交', auditStatus: '已通过' },
+            { id: 2, name: '发展部', submitStatus: '已提交', auditStatus: '已审核' },
+            { id: 3, name: '党委宣传部', submitStatus: '未提交', auditStatus: '-' },
+            { id: 4, name: '安监部', submitStatus: '已提交', auditStatus: '已通过' },
+            { id: 5, name: '设备部', submitStatus: '未提交', auditStatus: '-' },
+        ];
+
+        // ==================== 状态变量 ====================
+        let listData = [...allListData];
+        let currentPage = 1;
+        let pageSize = 10;
+        let sortField = null;
+        let sortDirection = 'asc';
+        let currentEditId = null;
+        let deleteId = null;
+        let moduleRows = [];
+
+        // 发布页面状态
+        let currentPublishTab = 'performance';
+        let publishCurrentPage = 1;
+        let publishPageSize = 10;
+
+        // ==================== 初始化 ====================
+        document.addEventListener('DOMContentLoaded', function() {
+            renderListTable();
+            renderPagination();
+            initModuleRows();
+            renderModuleTable();
+            renderPublishTable();
+            renderGrassrootsProgress();
+            renderProfessionalProgress();
+        });
+
+        // ==================== 列表页功能 ====================
+        function renderListTable() {
+            const tbody = document.getElementById('listTableBody');
+            const start = (currentPage - 1) * pageSize;
+            const end = start + pageSize;
+            const pageData = listData.slice(start, end);
+
+            if (pageData.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="7" class="no-data"><i class="fas fa-inbox"></i><p>暂无数据</p></td></tr>`;
+                document.getElementById('totalCount').textContent = '0';
+                return;
+            }
+
+            tbody.innerHTML = pageData.map((item, index) => {
+                const statusClass = `status-${item.status}`;
+                let actions = '';
+                
+                if (item.status === 'draft') {
+                    actions = `
+                        <button class="btn-text" onclick="goToEdit(${item.id})">编辑</button>
+                        <button class="btn-text" onclick="goToView(${item.id})">查看</button>
+                        <button class="btn-text danger" onclick="showDeleteModal(${item.id})">删除</button>
+                    `;
+                } else if (item.status === 'completed') {
+                    actions = `
+                        <button class="btn-text" onclick="goToView(${item.id})">查看</button>
+                        <button class="btn-text" onclick="goToPublish(${item.id})">汇总发布</button>
+                    `;
+                } else {
+                    actions = `<button class="btn-text" onclick="goToView(${item.id})">查看</button>`;
+                }
+
+                return `<tr>
+                    <td style="text-align: center;">${String(start + index + 1).padStart(2, '0')}</td>
+                    <td>${item.period}</td>
+                    <td>${item.name}</td>
+                    <td style="text-align: center;"><span class="number-link" onclick="showGrassrootsProgress(${item.id})">${item.grassrootsProgress}</span></td>
+                    <td style="text-align: center;"><span class="number-link" onclick="showProfessionalProgress(${item.id})">${item.professionalProgress}</span></td>
+                    <td style="text-align: center;"><span class="status-badge ${statusClass}">${item.statusText}</span></td>
+                    <td><div class="action-group">${actions}</div></td>
+                </tr>`;
+            }).join('');
+
+            document.getElementById('totalCount').textContent = listData.length;
+        }
+
+        function renderPagination() {
+            const totalItems = listData.length;
+            const totalPages = Math.ceil(totalItems / pageSize) || 1;
+            const pagination = document.getElementById('pagination');
+
+            let html = '';
+            html += `<div class="page-item ${currentPage === 1 ? 'disabled' : ''}" onclick="goToPage(${currentPage - 1})"><i class="fas fa-chevron-left"></i></div>`;
+
+            if (totalPages <= 7) {
+                for (let i = 1; i <= totalPages; i++) {
+                    html += `<div class="page-item ${i === currentPage ? 'active' : ''}" onclick="goToPage(${i})">${i}</div>`;
+                }
+            } else {
+                html += `<div class="page-item ${1 === currentPage ? 'active' : ''}" onclick="goToPage(1)">1</div>`;
+                if (currentPage > 3) html += `<div class="page-item" style="border:none;cursor:default;">...</div>`;
+
+                const start = Math.max(2, currentPage - 1);
+                const end = Math.min(totalPages - 1, currentPage + 1);
+                for (let i = start; i <= end; i++) {
+                    html += `<div class="page-item ${i === currentPage ? 'active' : ''}" onclick="goToPage(${i})">${i}</div>`;
+                }
+
+                if (currentPage < totalPages - 2) html += `<div class="page-item" style="border:none;cursor:default;">...</div>`;
+                html += `<div class="page-item ${totalPages === currentPage ? 'active' : ''}" onclick="goToPage(${totalPages})">${totalPages}</div>`;
+            }
+
+            html += `<div class="page-item ${currentPage === totalPages ? 'disabled' : ''}" onclick="goToPage(${currentPage + 1})"><i class="fas fa-chevron-right"></i></div>`;
+            pagination.innerHTML = html;
+        }
+
+        function goToPage(page) {
+            const totalPages = Math.ceil(listData.length / pageSize) || 1;
+            if (page < 1 || page > totalPages) return;
+            currentPage = page;
+            renderListTable();
+            renderPagination();
+        }
+
+        function changePageSize() {
+            pageSize = parseInt(document.getElementById('pageSize').value);
+            currentPage = 1;
+            renderListTable();
+            renderPagination();
+        }
+
+        function handleJump(event) {
+            if (event.key === 'Enter') {
+                const page = parseInt(event.target.value);
+                const totalPages = Math.ceil(listData.length / pageSize) || 1;
+                if (page >= 1 && page <= totalPages) {
+                    goToPage(page);
+                    event.target.value = '';
+                } else {
+                    showToast('error', `请输入 1-${totalPages} 之间的页码`);
+                }
+            }
+        }
+
+        function handleSearch() {
+            const period = document.getElementById('searchPeriod').value;
+            const name = document.getElementById('searchName').value.trim().toLowerCase();
+            const status = document.getElementById('searchStatus').value;
+
+            listData = allListData.filter(item => {
+                let match = true;
+                if (period && !item.period.includes(period)) match = false;
+                if (name && !item.name.toLowerCase().includes(name)) match = false;
+                if (status && item.status !== status) match = false;
+                return match;
+            });
+
+            currentPage = 1;
+            renderListTable();
+            renderPagination();
+            showToast('success', `搜索完成，共找到 ${listData.length} 条记录`);
+        }
+
+        function clearSearch() {
+            document.getElementById('searchPeriod').value = '';
+            document.getElementById('searchName').value = '';
+            document.getElementById('searchStatus').value = '';
+            listData = [...allListData];
+            currentPage = 1;
+            sortField = null;
+            renderListTable();
+            renderPagination();
+            showToast('success', '已清空搜索条件');
+        }
+
+        function sortTable(field) {
+            if (sortField === field) {
+                sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
+            } else {
+                sortField = field;
+                sortDirection = 'asc';
+            }
+
+            document.querySelectorAll('.sort-icon i').forEach(icon => icon.classList.remove('active'));
+            const activeIcon = document.querySelector(`#sort-${field} i[data-dir="${sortDirection}"]`);
+            if (activeIcon) activeIcon.classList.add('active');
+
+            listData.sort((a, b) => {
+                let valA = a[field];
+                let valB = b[field];
+                if (valA < valB) return sortDirection === 'asc' ? -1 : 1;
+                if (valA > valB) return sortDirection === 'asc' ? 1 : -1;
+                return 0;
+            });
+
+            currentPage = 1;
+            renderListTable();
+            renderPagination();
+        }
+
+        // ==================== 页面跳转 ====================
+        function showPage(pageId) {
+            document.querySelectorAll('.page-container').forEach(page => page.classList.remove('active'));
+            document.getElementById(pageId).classList.add('active');
+            window.scrollTo(0, 0);
+        }
+
+        function goBack() {
+            showPage('pageList');
+            currentEditId = null;
+            renderListTable();
+        }
+
+        function goToAdd() {
+            currentEditId = null;
+            document.getElementById('editTitle').textContent = '新增意见征集';
+            document.getElementById('editName').value = '';
+            document.getElementById('editPeriod').value = '';
+            document.getElementById('editGrassrootsDeadline').value = '';
+            document.getElementById('editProfessionalDeadline').value = '';
+            document.getElementById('editNotice').value = '';
+            document.getElementById('editRemark').value = '';
+            document.querySelectorAll('.unit-checkbox').forEach(cb => cb.checked = false);
+            moduleRows = [{ module: 'performance', alias: '关键业绩指标', file: null, sort: 100 }];
+            renderModuleTable();
+            showPage('pageEdit');
+        }
+
+        function goToEdit(id) {
+            currentEditId = id;
+            const item = listData.find(d => d.id === id);
+            if (!item) return;
+
+            document.getElementById('editTitle').textContent = '编辑意见征集';
+            document.getElementById('editName').value = item.name;
+            document.getElementById('editPeriod').value = item.period.replace('年', '');
+            // 编辑时加载更多字段，保持和新增界面一致
+            document.getElementById('editGrassrootsDeadline').value = '2025-08-20 18:00:00';
+            document.getElementById('editProfessionalDeadline').value = '2025-08-25 18:00:00';
+            document.getElementById('editNotice').value = '请各单位认真填写意见征集内容，确保数据准确。';
+            document.getElementById('editRemark').value = '第一轮征集';
+            // 默认选中一些单位
+            document.querySelectorAll('.unit-checkbox').forEach((cb, index) => {
+                cb.checked = index < 5; // 前5个单位默认选中
+            });
+            // 初始化征集模块
+            moduleRows = [
+                { module: 'performance', alias: '关键业绩指标', file: '2023安全工作指标.pdf', sort: 100 },
+                { module: 'other', alias: '关键业绩指标', file: '2023安全工作指标.pdf', sort: 200 }
+            ];
+            renderModuleTable();
+            showPage('pageEdit');
+            showToast('info', '进入编辑模式');
+        }
+
+        function goToView(id) {
+            currentEditId = id;
+            const item = listData.find(d => d.id === id);
+            if (!item) return;
+
+            // 基本信息
+            document.getElementById('viewName').textContent = item.name || '-';
+            document.getElementById('viewPeriod').textContent = item.period || '-';
+            
+            // 截止时间
+            document.getElementById('viewGrassrootsDeadline').textContent = '2025-08-20 18:00:00';
+            document.getElementById('viewProfessionalDeadline').textContent = '2025-08-25 18:00:00';
+            
+            // 通知内容和备注
+            document.getElementById('viewNotice').textContent = '请各单位认真填写意见征集内容，确保数据准确。';
+            document.getElementById('viewRemark').textContent = '第一轮征集';
+            
+            // 征集对象 - 供电单位
+            const powerUnits = ['市区公司', '市北公司', '市南公司', '城东公司', '城西公司'];
+            document.getElementById('viewPowerUnits').innerHTML = powerUnits.map(u => `<span style="margin-right: 12px;">${u}</span>`).join('');
+            
+            // 征集对象 - 业务支撑单位
+            const supportUnits = ['电科院', '经研院'];
+            document.getElementById('viewSupportUnits').innerHTML = supportUnits.map(u => `<span style="margin-right: 12px;">${u}</span>`).join('');
+            
+            // 征集对象 - 其他单位
+            const otherUnits = ['综能公司'];
+            document.getElementById('viewOtherUnits').innerHTML = otherUnits.map(u => `<span style="margin-right: 12px;">${u}</span>`).join('');
+            
+            // 征集模块
+            const viewModuleData = [
+                { module: '关键业绩指标', alias: '关键业绩指标', file: '2023安全工作指标.pdf', sort: 100 },
+                { module: '其他', alias: '关键业绩指标', file: '2023安全工作指标.pdf', sort: 200 }
+            ];
+            document.getElementById('viewModuleTableBody').innerHTML = viewModuleData.map((row, index) => `
+                <tr>
+                    <td style="text-align: center;">${String(index + 1).padStart(2, '0')}</td>
+                    <td>${row.module}</td>
+                    <td>${row.alias}</td>
+                    <td><span class="file-link">${row.file}</span></td>
+                    <td style="text-align: center;">${row.sort}</td>
+                </tr>
+            `).join('');
+            
+            showPage('pageView');
+        }
+
+        function goToPublish(id) {
+            currentEditId = id;
+            const item = listData.find(d => d.id === id);
+            if (!item) return;
+
+            document.getElementById('publishPeriod').textContent = item.period;
+            document.getElementById('publishName').textContent = item.name;
+            showPage('pagePublish');
+            showToast('info', '进入发布页面');
+        }
+
+        // ==================== 征集模块表格 ====================
+        function initModuleRows() {
+            moduleRows = [
+                { module: 'performance', alias: '关键业绩指标', file: '2023安全工作指标.pdf', sort: 100 },
+                { module: 'other', alias: '关键业绩指标', file: '2023安全工作指标.pdf', sort: 200 }
+            ];
+        }
+
+        function renderModuleTable() {
+            const tbody = document.getElementById('moduleTableBody');
+            tbody.innerHTML = moduleRows.map((row, index) => `
+                <tr>
+                    <td style="text-align: center;">${String(index + 1).padStart(2, '0')}</td>
+                    <td>
+                        <select class="form-select" onchange="updateModuleRow(${index}, 'module', this.value)">
+                            ${moduleOptions.map(opt => `<option value="${opt.value}" ${row.module === opt.value ? 'selected' : ''}>${opt.label}</option>`).join('')}
+                        </select>
+                    </td>
+                    <td><input type="text" class="form-input" value="${row.alias}" onchange="updateModuleRow(${index}, 'alias', this.value)"></td>
+                    <td>
+                        ${row.file ? `<span class="file-link" onclick="downloadFile('${row.file}')">${row.file}</span>` : '<span class="file-upload" onclick="uploadFile(' + index + ')"><i class="fas fa-upload"></i>上传文件</span>'}
+                    </td>
+                    <td style="text-align: center;"><input type="number" class="form-input" style="width: 80px; text-align: center;" value="${row.sort}" onchange="updateModuleRow(${index}, 'sort', this.value)"></td>
+                    <td style="text-align: center;"><button class="btn-text danger" onclick="deleteModuleRow(${index})">删除</button></td>
+                </tr>
+            `).join('');
+        }
+
+        function addModuleRow() {
+            moduleRows.push({ module: 'performance', alias: '', file: null, sort: (moduleRows.length + 1) * 100 });
+            renderModuleTable();
+        }
+
+        function deleteModuleRow(index) {
+            if (moduleRows.length <= 1) {
+                showToast('error', '至少保留一个征集模块');
+                return;
+            }
+            moduleRows.splice(index, 1);
+            renderModuleTable();
+        }
+
+        function updateModuleRow(index, field, value) {
+            moduleRows[index][field] = value;
+        }
+
+        function uploadFile(index) {
+            showToast('info', '请选择要上传的文件');
+            moduleRows[index].file = '新上传文件.pdf';
+            renderModuleTable();
+        }
+
+        function downloadFile(filename) {
+            showToast('info', `正在下载: ${filename}`);
+        }
+
+        // ==================== 弹窗功能 ====================
+        function showStartModal() {
+            document.getElementById('startModal').classList.add('active');
+        }
+
+        function closeStartModal() {
+            document.getElementById('startModal').classList.remove('active');
+        }
+
+        function confirmStart() {
+            closeStartModal();
+            showToast('success', '征集已开启');
+            goBack();
+        }
+
+        function showDeleteModal(id) {
+            deleteId = id;
+            document.getElementById('deleteModal').classList.add('active');
+        }
+
+        function closeDeleteModal() {
+            document.getElementById('deleteModal').classList.remove('active');
+            deleteId = null;
+        }
+
+        function confirmDelete() {
+            if (deleteId) {
+                const index = listData.findIndex(d => d.id === deleteId);
+                if (index > -1) {
+                    listData.splice(index, 1);
+                    renderListTable();
+                    renderPagination();
+                    showToast('success', '删除成功');
+                }
+            }
+            closeDeleteModal();
+        }
+
+        function saveDraft() {
+            showToast('success', '保存成功');
+        }
+
+        // ==================== 基层填报进度弹窗 ====================
+        function showGrassrootsProgress(id) {
+            document.getElementById('grassrootsProgressModal').classList.add('active');
+            renderGrassrootsProgress();
+        }
+
+        function closeGrassrootsProgressModal() {
+            document.getElementById('grassrootsProgressModal').classList.remove('active');
+        }
+
+        function renderGrassrootsProgress() {
+            const tbody = document.getElementById('grassrootsProgressBody');
+            tbody.innerHTML = grassrootsProgressData.map((item, index) => {
+                const submitStatusClass = item.submitStatus === '已提交' ? 'status-submitted' : 'status-pending';
+                const auditStatusClass = item.auditStatus === '已通过' ? 'status-published' : (item.auditStatus === '待审核' ? 'status-pending' : '');
+                return `<tr>
+                    <td style="text-align: center;">${String(index + 1).padStart(2, '0')}</td>
+                    <td>${item.name}</td>
+                    <td>${item.type}</td>
+                    <td style="text-align: center;">${item.fillStatus}</td>
+                    <td style="text-align: center;"><span class="status-badge ${submitStatusClass}">${item.submitStatus}</span></td>
+                    <td>${item.submitTime}</td>
+                    <td style="text-align: center;">${item.auditStatus !== '-' ? `<span class="status-badge ${auditStatusClass}">${item.auditStatus}</span>` : '-'}</td>
+                    <td style="text-align: center;"><button class="btn-text" onclick="remindUnit('${item.name}')">提醒</button></td>
+                </tr>`;
+            }).join('');
+            document.getElementById('grassrootsTotalCount').textContent = grassrootsProgressData.length;
+        }
+
+        function remindUnit(unitName) {
+            showToast('success', `已提醒: ${unitName}`);
+        }
+
+        function remindAllUnits() {
+            showToast('success', '已发送一键提醒');
+        }
+
+        // ==================== 专业反馈进度弹窗 ====================
+        function showProfessionalProgress(id) {
+            document.getElementById('professionalProgressModal').classList.add('active');
+            renderProfessionalProgress();
+        }
+
+        function closeProfessionalProgressModal() {
+            document.getElementById('professionalProgressModal').classList.remove('active');
+        }
+
+        function renderProfessionalProgress() {
+            const tbody = document.getElementById('professionalProgressBody');
+            tbody.innerHTML = professionalProgressData.map((item, index) => {
+                const submitStatusClass = item.submitStatus === '已提交' ? 'status-submitted' : 'status-pending';
+                const auditStatusClass = item.auditStatus === '已通过' ? 'status-published' : (item.auditStatus === '已审核' ? 'status-pending' : '');
+                return `<tr>
+                    <td style="text-align: center;">${String(index + 1).padStart(2, '0')}</td>
+                    <td>${item.name}</td>
+                    <td style="text-align: center;"><span class="status-badge ${submitStatusClass}">${item.submitStatus}</span></td>
+                    <td style="text-align: center;">${item.auditStatus !== '-' ? `<span class="status-badge ${auditStatusClass}">${item.auditStatus}</span>` : '-'}</td>
+                    <td style="text-align: center;"><button class="btn-text" onclick="remindDept('${item.name}')">提醒</button></td>
+                </tr>`;
+            }).join('');
+            document.getElementById('professionalTotalCount').textContent = professionalProgressData.length;
+        }
+
+        function remindDept(deptName) {
+            showToast('success', `已提醒: ${deptName}`);
+        }
+
+        function remindAllDepts() {
+            showToast('success', '已发送一键提醒');
+        }
+
+        // ==================== 发布页面功能 ====================
+        function switchPublishTab(tabName) {
+            currentPublishTab = tabName;
+            publishCurrentPage = 1;
+
+            document.querySelectorAll('#publishTabs .tab-item').forEach(tab => tab.classList.remove('active'));
+            document.querySelector(`#publishTabs .tab-item[data-tab="${tabName}"]`).classList.add('active');
+            document.querySelectorAll('.publish-tab-content').forEach(content => content.style.display = 'none');
+            document.getElementById(`publish-tab-${tabName}`).style.display = 'block';
+
+            renderPublishTable();
+        }
+
+        function renderPublishTable() {
+            const data = publishData[currentPublishTab] || [];
+            const start = (publishCurrentPage - 1) * publishPageSize;
+            const end = start + publishPageSize;
+            const pageData = data.slice(start, end);
+
+            let tbodyId = '';
+            let renderFn = null;
+
+            switch(currentPublishTab) {
+                case 'performance':
+                    tbodyId = 'publishPerformanceBody';
+                    renderFn = renderPerformanceRow;
+                    break;
+                case 'bonus':
+                    tbodyId = 'publishBonusBody';
+                    renderFn = renderBonusRow;
+                    break;
+                case 'party':
+                    tbodyId = 'publishPartyBody';
+                    renderFn = renderPartyRow;
+                    break;
+                case 'safety':
+                    tbodyId = 'publishSafetyBody';
+                    renderFn = renderSafetyRow;
+                    break;
+            }
+
+            const tbody = document.getElementById(tbodyId);
+            if (pageData.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="10" class="no-data"><i class="fas fa-inbox"></i><p>暂无数据</p></td></tr>`;
+            } else {
+                tbody.innerHTML = pageData.map((item, index) => renderFn(item, start + index)).join('');
+            }
+
+            document.getElementById('publishTotalCount').textContent = data.length;
+            renderPublishPagination(data.length);
+        }
+
+        function renderPerformanceRow(item, index) {
+            return `<tr>
+                <td style="text-align: center;">${String(index + 1).padStart(2, '0')}</td>
+                <td>${item.category}</td>
+                <td>${item.name}</td>
+                <td>${item.factor}</td>
+                <td>${item.unit}</td>
+                <td>${item.opinionType}</td>
+                <td style="text-align: left; max-width: 200px;">${item.opinion}</td>
+                <td style="text-align: left; max-width: 150px;">${item.reason}</td>
+                <td style="text-align: center;"><div class="toggle-switch ${item.adopted ? 'active' : ''}" onclick="toggleAdopt('performance', ${item.id})"></div></td>
+                <td><input type="text" class="form-input" placeholder="输入填入内容" value="${item.adoptDesc}" onchange="updateAdoptDesc('performance', ${item.id}, this.value)"></td>
+            </tr>`;
+        }
+
+        function renderBonusRow(item, index) {
+            return `<tr>
+                <td style="text-align: center;">${String(index + 1).padStart(2, '0')}</td>
+                <td>${item.bonusItem}</td>
+                <td>${item.name}</td>
+                <td>${item.factor}</td>
+                <td>${item.unit}</td>
+                <td style="text-align: left; max-width: 200px;">${item.opinion}</td>
+                <td style="text-align: left; max-width: 150px;">${item.reason}</td>
+                <td style="text-align: center;"><div class="toggle-switch ${item.adopted ? 'active' : ''}" onclick="toggleAdopt('bonus', ${item.id})"></div></td>
+                <td><input type="text" class="form-input" placeholder="输入填入内容" value="${item.adoptDesc}" onchange="updateAdoptDesc('bonus', ${item.id}, this.value)"></td>
+            </tr>`;
+        }
+
+        function renderPartyRow(item, index) {
+            return `<tr>
+                <td style="text-align: center;">${String(index + 1).padStart(2, '0')}</td>
+                <td>${item.content}</td>
+                <td>${item.method}</td>
+                <td>${item.unit}</td>
+                <td style="text-align: left; max-width: 200px;">${item.opinion}</td>
+                <td style="text-align: left; max-width: 150px;">${item.reason}</td>
+                <td style="text-align: center;"><div class="toggle-switch ${item.adopted ? 'active' : ''}" onclick="toggleAdopt('party', ${item.id})"></div></td>
+                <td><input type="text" class="form-input" placeholder="输入填入内容" value="${item.adoptDesc}" onchange="updateAdoptDesc('party', ${item.id}, this.value)"></td>
+            </tr>`;
+        }
+
+        function renderSafetyRow(item, index) {
+            return `<tr>
+                <td style="text-align: center;">${String(index + 1).padStart(2, '0')}</td>
+                <td>${item.clause}</td>
+                <td>${item.unit}</td>
+                <td style="text-align: left; max-width: 200px;">${item.opinion}</td>
+                <td style="text-align: left; max-width: 150px;">${item.reason}</td>
+                <td style="text-align: center;"><div class="toggle-switch ${item.adopted ? 'active' : ''}" onclick="toggleAdopt('safety', ${item.id})"></div></td>
+                <td><input type="text" class="form-input" placeholder="输入填入内容" value="${item.adoptDesc}" onchange="updateAdoptDesc('safety', ${item.id}, this.value)"></td>
+            </tr>`;
+        }
+
+        function renderPublishPagination(totalItems) {
+            const totalPages = Math.ceil(totalItems / publishPageSize) || 1;
+            const pagination = document.getElementById('publishPagination');
+
+            let html = '';
+            html += `<div class="page-item ${publishCurrentPage === 1 ? 'disabled' : ''}" onclick="goToPublishPage(${publishCurrentPage - 1})"><i class="fas fa-chevron-left"></i></div>`;
+
+            if (totalPages <= 7) {
+                for (let i = 1; i <= totalPages; i++) {
+                    html += `<div class="page-item ${i === publishCurrentPage ? 'active' : ''}" onclick="goToPublishPage(${i})">${i}</div>`;
+                }
+            } else {
+                html += `<div class="page-item ${1 === publishCurrentPage ? 'active' : ''}" onclick="goToPublishPage(1)">1</div>`;
+                if (publishCurrentPage > 3) html += `<div class="page-item" style="border:none;cursor:default;">...</div>`;
+
+                const start = Math.max(2, publishCurrentPage - 1);
+                const end = Math.min(totalPages - 1, publishCurrentPage + 1);
+                for (let i = start; i <= end; i++) {
+                    html += `<div class="page-item ${i === publishCurrentPage ? 'active' : ''}" onclick="goToPublishPage(${i})">${i}</div>`;
+                }
+
+                if (publishCurrentPage < totalPages - 2) html += `<div class="page-item" style="border:none;cursor:default;">...</div>`;
+                html += `<div class="page-item ${totalPages === publishCurrentPage ? 'active' : ''}" onclick="goToPublishPage(${totalPages})">${totalPages}</div>`;
+            }
+
+            html += `<div class="page-item ${publishCurrentPage === totalPages ? 'disabled' : ''}" onclick="goToPublishPage(${publishCurrentPage + 1})"><i class="fas fa-chevron-right"></i></div>`;
+            pagination.innerHTML = html;
+        }
+
+        function goToPublishPage(page) {
+            const data = publishData[currentPublishTab] || [];
+            const totalPages = Math.ceil(data.length / publishPageSize) || 1;
+            if (page < 1 || page > totalPages) return;
+            publishCurrentPage = page;
+            renderPublishTable();
+        }
+
+        function changePublishPageSize() {
+            publishPageSize = parseInt(document.getElementById('publishPageSize').value);
+            publishCurrentPage = 1;
+            renderPublishTable();
+        }
+
+        function handlePublishJump(event) {
+            if (event.key === 'Enter') {
+                const page = parseInt(event.target.value);
+                goToPublishPage(page);
+                event.target.value = '';
+            }
+        }
+
+        function toggleAdopt(type, id) {
+            const item = publishData[type].find(d => d.id === id);
+            if (item) {
+                item.adopted = !item.adopted;
+                renderPublishTable();
+                showToast('success', item.adopted ? '已采纳' : '已取消采纳');
+            }
+        }
+
+        function updateAdoptDesc(type, id, value) {
+            const item = publishData[type].find(d => d.id === id);
+            if (item) {
+                item.adoptDesc = value;
+            }
+        }
+
+        function filterPublishTable() {
+            renderPublishTable();
+        }
+
+        function handleSavePublish() {
+            showToast('success', '保存成功');
+        }
+
+        function handleImportPublish() {
+            showToast('info', '请选择要导入的文件');
+        }
+
+        function handleExportPublish() {
+            showToast('success', '导出成功');
+        }
+
+        function handlePublish() {
+            showToast('success', '发布成功');
+            goBack();
+        }
+
+        function openProfessionalFeedback() {
+            showToast('info', '已开启专业反馈');
+        }
+
+        function exportReport() {
+            showToast('success', '报表导出成功');
+        }
+
+        function downloadAttachment() {
+            showToast('info', '正在下载附件');
+        }
+
+        // ==================== 工具函数 ====================
+        function showToast(type, message) {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+
+            let icon = '';
+            switch(type) {
+                case 'success': icon = '<i class="fas fa-check-circle" style="color: #52c41a;"></i>'; break;
+                case 'error': icon = '<i class="fas fa-times-circle" style="color: #ff4d4f;"></i>'; break;
+                case 'info': icon = '<i class="fas fa-info-circle" style="color: #1890ff;"></i>'; break;
+            }
+
+            toast.innerHTML = `${icon}<span>${message}</span>`;
+            container.appendChild(toast);
+
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transform = 'translateY(-20px)';
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        // 点击弹窗外部关闭
+        document.querySelectorAll('.modal-overlay').forEach(modal => {
+            modal.addEventListener('click', function(e) {
+                if (e.target === this) {
+                    this.classList.remove('active');
+                }
+            });
+        });
+
+        // 日期选择器模拟
+        document.getElementById('editGrassrootsDeadline')?.addEventListener('click', function() {
+            this.value = '2025-08-20 18:00:00';
+        });
+        document.getElementById('editProfessionalDeadline')?.addEventListener('click', function() {
+            this.value = '2025-08-25 18:00:00';
+        });
+    </script>
+</body>
+</html>

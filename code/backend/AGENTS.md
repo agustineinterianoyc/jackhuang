@@ -5,7 +5,7 @@
 - `code/backend/` 是当前项目的后端父工程目录。
 - 它是 Maven 多模块脚手架根目录，不是单体源码目录。
 - 当前默认包根是 `com.hk.demo`。
-- `backend-api`、`backend-core`、`backend-data`、`aldemo` 是固定模块边界。
+- `backend-api`、`backend-core`、`backend-data`、`aldemohk` 是固定模块边界。
 
 ## Skill 约束
 
@@ -26,7 +26,7 @@ code/backend/
 ├── backend-api/
 ├── backend-core/
 ├── backend-data/
-├── aldemo/
+├── aldemohk/
 └── DataSQL/
 ```
 
@@ -47,7 +47,7 @@ code/backend/
 - 放数据访问层共享能力
 - 放 DO 基类、分页抽象、共享 Mapper 或数据层配置
 
-### `aldemo`
+### `aldemohk`
 
 - 当前唯一可运行业务应用模块
 - 默认新增业务代码都先落在这里
@@ -57,9 +57,9 @@ code/backend/
 1. 公共契约 -> `backend-api`
 2. 基础设施 -> `backend-core`
 3. 通用数据能力 -> `backend-data`
-4. 当前业务逻辑 -> `aldemo`
+4. 当前业务逻辑 -> `aldemohk`
 
-如果不确定未来是否复用，默认先放 `aldemo`。
+如果不确定未来是否复用，默认先放 `aldemohk`。
 
 ## 需求模块与后端目录命名
 
@@ -95,7 +95,7 @@ src/test/resources/test-report/dept/
 ## 默认数据库事实
 
 - 数据库类型判断优先读取：
-  `aldemo/src/main/resources/application.yaml`
+  `aldemohk/src/main/resources/application.yaml`
 - 当前脚手架默认：`spring.profiles.active=dev,mysql`
 - 没有额外说明时，默认按 MySQL 方言处理 SQL
 
@@ -104,7 +104,7 @@ src/test/resources/test-report/dept/
 固定依赖方向：
 
 ```text
-backend-api <- backend-core <- backend-data <- aldemo
+backend-api <- backend-core <- backend-data <- aldemohk
 ```
 
 不要让共享模块反向依赖业务应用。
@@ -116,7 +116,7 @@ backend-api <- backend-core <- backend-data <- aldemo
 ```powershell
 ./mvnw test
 ./mvnw clean verify
-./mvnw -pl aldemo -am spring-boot:run
+./mvnw -pl aldemohk -am spring-boot:run
 ```
 
 工程要求：
@@ -129,7 +129,7 @@ backend-api <- backend-core <- backend-data <- aldemo
 
 1. `pom.xml` 是整个后端的构建入口。
 2. `backend-api`、`backend-core`、`backend-data` 是共享模块。
-3. `aldemo` 是当前唯一可运行应用。
+3. `aldemohk` 是当前唯一可运行应用。
 4. `.gitkeep` 代表目录模板已固定，不是可随意删除的噪音文件。
 
 ## 禁止事项

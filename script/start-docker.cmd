@@ -1,10 +1,10 @@
 @echo off
-rem aldemo docker launcher (Windows)
+rem aldemohk docker launcher (Windows)
 rem starts backend + frontend containers via docker compose
 setlocal
 
 set "PROJECT_NAME=GongSiPeiXunXiangMu"
-set "PROJECT_CODE=aldemo"
+set "PROJECT_CODE=aldemohk"
 set "SCRIPT_DIR=%~dp0"
 set "ROOT_DIR=%SCRIPT_DIR%.."
 set "COMPOSE_FILE=%ROOT_DIR%\docker\docker-compose.yml"

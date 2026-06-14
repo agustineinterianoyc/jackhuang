@@ -13,7 +13,7 @@
 ## 项目结构
 
 ```text
-aldemo/
+aldemohk/
 ├── code/
 │   ├── frontend/     # 正式前端工程
 │   └── backend/      # 正式后端工程

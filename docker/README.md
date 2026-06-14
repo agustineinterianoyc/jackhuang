@@ -1,4 +1,4 @@
-# Docker 启动指南（公司培训项目 / aldemo）
+# Docker 启动指南（公司培训项目 / aldemohk）
 
 ## 适用范围
 
@@ -15,7 +15,7 @@
 
 | 文件 | 说明 |
 |---|---|
-| `docker/Dockerfile.backend` | 后端开发镜像：JDK 21 + Maven，容器内执行 `mvn -pl aldemo -am spring-boot:run` |
+| `docker/Dockerfile.backend` | 后端开发镜像：JDK 21 + Maven，容器内执行 `mvn -pl aldemohk -am spring-boot:run` |
 | `docker/Dockerfile.frontend` | 前端开发镜像：Node 22-alpine，容器内执行 `npm run dev` |
 | `docker/docker-compose.yml` | 编排：backend + frontend，源码挂载、依赖卷化 |
 | `docker/.env.example` | 环境变量样例（拷贝为 `.env` 使用） |
@@ -96,6 +96,6 @@ docker compose -f docker/docker-compose.yml down
 
 ## 数据持久化
 
-- Maven 本地仓库：命名卷 `aldemo-maven-repo`
-- 前端 node_modules：命名卷 `aldemo-frontend-node-modules`
+- Maven 本地仓库：命名卷 `aldemohk-maven-repo`
+- 前端 node_modules：命名卷 `aldemohk-frontend-node-modules`
 - 源码：bind mount 自宿主仓库目录，编辑即生效

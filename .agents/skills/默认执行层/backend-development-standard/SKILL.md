@@ -1,4 +1,4 @@
-﻿---
+---
 name: backend-development-standard
 description: 在当前仓库中修改 `code/backend/` 下的 Java 后端代码时使用。适用于新增或修改 controller、service、repository、DTO/VO/DO、配置、SQL、测试，以及多模块代码归属判断。使用时先阅读 `code/backend/AGENTS.md`，并按该工程的模块边界、目录层级、最小改动和中文注释规范执行。
 ---
@@ -19,7 +19,7 @@ description: 在当前仓库中修改 `code/backend/` 下的 Java 后端代码�
 
 先确认：
 
-- 这次改动属于 `backend-api`、`backend-core`、`backend-data` 还是 `aldemo`
+- 这次改动属于 `backend-api`、`backend-core`、`backend-data` 还是 `aldemohk`
 - 如果是业务需求开发，是否已读取 `docs/需求/模块总表.md` 并确认模块编码
 - 是否真的需要抽共享，还是应该先留在业务应用模块
 - 周边文件使用的是哪种返回包装、异常风格、配置方式和测试方式
@@ -37,9 +37,9 @@ description: 在当前仓库中修改 `code/backend/` 下的 Java 后端代码�
 3. 通用数据访问能力：
    放 `backend-data`
 4. 当前业务应用逻辑：
-   放 `aldemo`
+   放 `aldemohk`
 
-如果不确定未来是否复用，默认先放 `aldemo`。
+如果不确定未来是否复用，默认先放 `aldemohk`。
 
 不要把“可能以后会复用”的代码提前抽到共享模块。
 
@@ -144,7 +144,7 @@ src/test/resources/test-report/dept/
 
 - 共享基础配置放 `backend-core`
 - 数据访问公共配置放 `backend-data`
-- 当前应用专有配置放 `aldemo`
+- 当前应用专有配置放 `aldemohk`
 - 环境配置优先写入对应 profile 文件
 - 不要把业务环境配置沉到共享模块
 

@@ -1,4 +1,4 @@
-﻿---
+---
 name: database-schema-standard
 description: 在当前仓库中修改 `code/backend/` 下涉及数据库表设计、DDL 变更、字段调整、索引设计、表关联关系、初始化 SQL、Mapper SQL 或 DataSQL 留痕文档时使用。适用于新增表、新增字段、修改字段、删改索引、表结构演进，以及按业务目录记录数据库变更明细与汇总清单。
 ---
@@ -12,7 +12,7 @@ description: 在当前仓库中修改 `code/backend/` 下涉及数据库表设�
 先阅读：
 
 - `code/backend/AGENTS.md`
-- `code/backend/aldemo/src/main/resources/application.yaml`
+- `code/backend/aldemohk/src/main/resources/application.yaml`
 
 先确认：
 
@@ -37,7 +37,7 @@ description: 在当前仓库中修改 `code/backend/` 下涉及数据库表设�
 
 按以下顺序判断：
 
-1. 先看 `code/backend/aldemo/src/main/resources/application.yaml`
+1. 先看 `code/backend/aldemohk/src/main/resources/application.yaml`
 2. 读取 `spring.profiles.active`
 3. 读取 `app.database.platform`
 4. 如启用了 `application-mysql.yaml`、`application-oracle.yaml`、`application-postgresql.yaml` 之一，以数据库 profile 为准
@@ -530,10 +530,10 @@ code/backend/DataSQL/
 
 如果改动涉及表结构，必须同步检查：
 
-- `code/backend/aldemo/src/main/resources/application.yaml`
-- `code/backend/aldemo/src/main/resources/application-mysql.yaml`
-- `code/backend/aldemo/src/main/resources/application-oracle.yaml`
-- `code/backend/aldemo/src/main/resources/application-postgresql.yaml`
+- `code/backend/aldemohk/src/main/resources/application.yaml`
+- `code/backend/aldemohk/src/main/resources/application-mysql.yaml`
+- `code/backend/aldemohk/src/main/resources/application-oracle.yaml`
+- `code/backend/aldemohk/src/main/resources/application-postgresql.yaml`
 - `db/*/schema.sql`
 - `db/*/data.sql`
 - `resources/mapper/*.xml`

@@ -20,9 +20,9 @@ public class OpenApiConfig {
     @Bean
     public OpenAPI baseOpenApi() {
         return new OpenAPI().info(new Info()
-            .title("Aldemo API")
-            .description("公司培训项目（aldemo）后端接口文档")
+            .title("aldemohk API")
+            .description("aldemohk（aldemohk）后端接口文档")
             .version("v1.0.0")
-            .contact(new Contact().name("aldemo")));
+            .contact(new Contact().name("aldemohk")));
     }
 }

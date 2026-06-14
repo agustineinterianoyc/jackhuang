@@ -52,7 +52,7 @@ const { chromium } = require('playwright')
     await page.waitForTimeout(600)
     const expandedTitle = (await page.locator('[data-testid="sidebar-title"]').textContent())?.trim()
     console.log('9. EXPANDED TITLE:', expandedTitle)
-    console.log('9. IS 公司培训项目:', expandedTitle === '公司培训项目')
+    console.log('9. IS aldemohk:', expandedTitle === 'aldemohk')
   }
 
   // Check user panel

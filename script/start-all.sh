@@ -1,40 +1,26 @@
-#!/usr/bin/env bash
-# 公司培训项目（aldemo）前后端联合启动脚本
-# 行为：在后台同时启动后端与前端，并在 Ctrl+C 时一起停止。
-set -euo pipefail
+#!/bin/bash
+# aldemohk 前后端联合启动脚本
+# Ctrl+C 同时停止两个进程
 
-PROJECT_NAME="公司培训项目"
-PROJECT_CODE="aldemo"
+set -e
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+PROJECT_CODE="aldemohk"
 
-echo "========================================"
-echo " 项目: ${PROJECT_NAME} (${PROJECT_CODE})"
-echo " 同时启动: 后端 + 前端"
-echo " 停止方式: Ctrl+C"
-echo "========================================"
-
-PIDS=()
+echo "=================================="
+echo "  ${PROJECT_CODE} 前后端联合启动"
+echo "  Ctrl+C 停止所有服务"
+echo "=================================="
 
 cleanup() {
-  echo ""
-  echo "[info] 收到停止信号，结束所有子进程 ..."
-  for pid in "${PIDS[@]:-}"; do
-    if [[ -n "${pid:-}" ]] && kill -0 "${pid}" 2>/dev/null; then
-      kill "${pid}" 2>/dev/null || true
-    fi
-  done
-  wait 2>/dev/null || true
-  echo "[info] 已退出。"
+    echo ""
+    echo "正在停止所有服务..."
+    kill 0
 }
 
-trap cleanup INT TERM EXIT
+trap cleanup INT TERM
 
-bash "${SCRIPT_DIR}/start-backend.sh" &
-PIDS+=("$!")
+"${SCRIPT_DIR}/start-backend.sh" &
+"${SCRIPT_DIR}/start-frontend.sh" &
 
-bash "${SCRIPT_DIR}/start-frontend.sh" &
-PIDS+=("$!")
-
-wait -n "${PIDS[@]}" || true
-wait || true
+wait

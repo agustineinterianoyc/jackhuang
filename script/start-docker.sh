@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
-# aldemo docker launcher (Linux/macOS/Git Bash)
+# aldemohk docker launcher (Linux/macOS/Git Bash)
 set -euo pipefail
 
 PROJECT_NAME="公司培训项目"
-PROJECT_CODE="aldemo"
+PROJECT_CODE="aldemohk"
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT_DIR="$(cd "${SCRIPT_DIR}/.." && pwd)"

@@ -1,0 +1,75 @@
+# Nacos dataId: aldemohk.yaml
+# 用途：统一承载公共运行配置，以及 dev / prod 环境差异配置。
+
+server:
+  # 服务端口保留统一默认值，如需区分环境可在对应 profile 分段中单独覆盖。
+  port: 8080
+
+springdoc:
+  swagger-ui:
+    # 开发环境默认通过 /swagger-ui.html 访问接口文档。
+    path: /swagger-ui.html
+
+management:
+  endpoints:
+    web:
+      exposure:
+        # 暴露健康检查、基础信息以及 Nacos 自检端点，便于联调和运维排查。
+        include: health,info,nacosconfig,nacosdiscovery
+
+app:
+  cors:
+    # 默认开放本机前端调试地址；如生产环境有网关统一处理，可在 prod 段单独收紧。
+    allowed-origin-patterns:
+      - http://localhost:*
+      - http://127.0.0.1:*
+    allowed-methods:
+      - GET
+      - POST
+      - PUT
+      - DELETE
+      - OPTIONS
+    allowed-headers:
+      - "*"
+    allow-credentials: false
+
+---
+spring:
+  config:
+    activate:
+      on-profile: dev
+
+app:
+  database:
+    # 开发环境默认库名。
+    name: aldemohk
+
+logging:
+  level:
+    # 开发环境保留更详细的业务日志。
+    root: info
+    com.hk.demo: debug
+
+---
+spring:
+  config:
+    activate:
+      on-profile: prod
+
+app:
+  database:
+    # 生产环境优先读取环境变量，避免将真实库名硬编码到配置中心模板。
+    name: ${APP_DATABASE_NAME:aldemohk}
+
+springdoc:
+  api-docs:
+    # 生产环境默认关闭接口文档暴露。
+    enabled: false
+  swagger-ui:
+    enabled: false
+
+logging:
+  level:
+    # 生产环境默认收敛根日志级别，保留业务包必要信息。
+    root: warn
+    com.hk.demo: info

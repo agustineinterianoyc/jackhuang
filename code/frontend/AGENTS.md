@@ -60,7 +60,7 @@ src/
 ### 路由守卫
 `router.afterEach` 全局后置守卫自动更新页面标题：
 - 取 `to.meta.title` 作为 `document.title`
-- 未匹配时回退为 `公司培训项目`
+- 未匹配时回退为 `aldemohk`
 
 ### 路由配置示例
 ```ts

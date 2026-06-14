@@ -17,13 +17,13 @@
     <packaging>pom</packaging>
 
     <name>backend</name>
-    <description>公司培训项目（aldemo）后端父工程</description>
+    <description>aldemohk（aldemohk）后端父工程</description>
 
     <modules>
         <module>backend-api</module>
         <module>backend-core</module>
         <module>backend-data</module>
-        <module>aldemo</module>
+        <module>aldemohk</module>
     </modules>
 
     <properties>
@@ -55,6 +55,11 @@
             <dependency>
                 <groupId>com.baomidou</groupId>
                 <artifactId>mybatis-plus-spring-boot4-starter</artifactId>
+                <version>${mybatis.plus.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.baomidou</groupId>
+                <artifactId>mybatis-plus-jsqlparser</artifactId>
                 <version>${mybatis.plus.version}</version>
             </dependency>
         </dependencies>

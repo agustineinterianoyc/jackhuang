@@ -1,22 +1,22 @@
-# Docker Compose for aldemo (公司培训项目)
+# Docker Compose for aldemohk (公司培训项目)
 # 用法：从项目根目录执行
 #   docker compose -f docker/docker-compose.yml up -d --build
 # 服务覆盖：后端 (Spring Boot) + 前端 (Vite dev server)
 # 数据库：复用宿主机 MySQL，通过 host.docker.internal 访问
 
-name: aldemo
+name: aldemohk
 
 services:
   backend:
     build:
       context: ..
       dockerfile: docker/Dockerfile.backend
-    image: aldemo-backend-dev:latest
-    container_name: aldemo-backend
+    image: aldemohk-backend-dev:latest
+    container_name: aldemohk-backend
     working_dir: /workspace/backend
     environment:
       # 容器内通过 host.docker.internal 访问宿主机 MySQL
-      MYSQL_URL: jdbc:mysql://host.docker.internal:3306/aldemo?useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true&useSSL=false&createDatabaseIfNotExist=true
+      MYSQL_URL: jdbc:mysql://host.docker.internal:3306/aldemohk?useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true&useSSL=false&createDatabaseIfNotExist=true
       MYSQL_USERNAME: ${MYSQL_USERNAME:-root}
       MYSQL_PASSWORD: ${MYSQL_PASSWORD:-123456}
       # 默认沿用 application.yaml 中 active=dev,mysql；如需覆盖在此设置
@@ -32,43 +32,45 @@ services:
       # 源码挂载，便于在容器内即时编译运行
       - ../code/backend:/workspace/backend
       # Maven 本地仓库使用命名卷，避免每次容器重建都重新下载依赖
-      - aldemo-maven-repo:/root/.m2
+      - aldemohk-maven-repo:/root/.m2
     extra_hosts:
       # 让 Linux 容器也能识别 host.docker.internal（Windows / Mac 默认已注入）
       - "host.docker.internal:host-gateway"
     networks:
-      - aldemo-net
+      - aldemohk-net
     restart: unless-stopped
 
   frontend:
     build:
       context: ..
       dockerfile: docker/Dockerfile.frontend
-    image: aldemo-frontend-dev:latest
-    container_name: aldemo-frontend
+    image: aldemohk-frontend-dev:latest
+    container_name: aldemohk-frontend
     working_dir: /workspace/frontend
     environment:
-      # 后端 API 地址：浏览器 -> 宿主机 8080；如改动按需覆盖
-      VITE_API_BASE_URL: ${VITE_API_BASE_URL:-http://localhost:8080/api}
+      # 浏览器视角的 API 基础路径：留空让 axios 走相对路径，由 Vite dev server 代理 /api 到后端容器
+      VITE_API_BASE_URL: ${VITE_API_BASE_URL:-}
+      # Vite dev server 内部代理目标：容器内通过同 docker-network 的服务名访问后端容器
+      VITE_DEV_PROXY_TARGET: ${VITE_DEV_PROXY_TARGET:-http://aldemohk-backend:8080}
     ports:
       - "${FRONTEND_PORT:-5173}:5173"
     volumes:
       - ../code/frontend:/workspace/frontend
       # node_modules 用命名卷隔离，防止宿主目录覆盖容器内已安装的依赖
-      - aldemo-frontend-node-modules:/workspace/frontend/node_modules
+      - aldemohk-frontend-node-modules:/workspace/frontend/node_modules
     networks:
-      - aldemo-net
+      - aldemohk-net
     depends_on:
       - backend
     restart: unless-stopped
 
 volumes:
-  aldemo-maven-repo:
-    name: aldemo-maven-repo
-  aldemo-frontend-node-modules:
-    name: aldemo-frontend-node-modules
+  aldemohk-maven-repo:
+    name: aldemohk-maven-repo
+  aldemohk-frontend-node-modules:
+    name: aldemohk-frontend-node-modules
 
 networks:
-  aldemo-net:
-    name: aldemo-net
+  aldemohk-net:
+    name: aldemohk-net
     driver: bridge

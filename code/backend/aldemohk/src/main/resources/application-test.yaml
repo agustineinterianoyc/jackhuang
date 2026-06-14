@@ -1,0 +1,26 @@
+spring:
+  cloud:
+    nacos:
+      discovery:
+        # 测试环境不依赖服务注册，保证集成测试可离线执行。
+        enabled: false
+      config:
+        # 测试环境关闭 Nacos 配置拉取，避免测试结果受外部环境影响。
+        enabled: false
+        import-check:
+          enabled: false
+  sql:
+    init:
+      # 集成测试需要自动初始化测试库。
+      mode: always
+
+app:
+  database:
+    # 测试环境使用独立库名，避免与开发数据混用。
+    name: aldemohk_test
+
+logging:
+  level:
+    # 测试日志保持简洁，便于关注断言失败信息。
+    root: info
+    com.hk.demo: info

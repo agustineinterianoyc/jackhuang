@@ -114,7 +114,7 @@
 ### 第 3 步：判断落点
 
 - 前端：按 `views`、`components`、`stores`、`types`、`utils` 等既有结构落位
-- 后端：先判断属于 `backend-api`、`backend-core`、`backend-data` 还是 `aldemo`
+- 后端：先判断属于 `backend-api`、`backend-core`、`backend-data` 还是 `aldemohk`
 - 需求类任务：先查 `docs/需求/模块总表.md`
 - 数据库类任务：同步判断 `DataSQL` 业务目录落点
 

@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1.7
 # Backend dev image: JDK 21 + Maven, runs spring-boot:run in container
-# 源码通过 compose bind mount 注入，依赖通过命名卷 aldemo-maven-repo 持久化。
+# 源码通过 compose bind mount 注入，依赖通过命名卷 aldemohk-maven-repo 持久化。
 # 首次启动会下载依赖（首次较慢）；后续启动直接读卷，秒级。
 
 FROM eclipse-temurin:21-jdk-jammy
@@ -28,4 +28,4 @@ WORKDIR /workspace/backend
 EXPOSE 8080
 
 # 容器内执行业务模块运行；profile 默认沿用 application.yaml 中 dev,mysql
-CMD ["mvn", "-pl", "aldemo", "-am", "spring-boot:run"]
+CMD ["mvn", "-pl", "aldemohk", "-am", "spring-boot:run"]

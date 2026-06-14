@@ -1,4 +1,4 @@
-﻿---
+---
 name: jdk-maven-matrix
 description: 当需要按后端 JDK 版本选择 Maven、Spring Boot、Spring Cloud、Spring Cloud Alibaba、数据库驱动、Nacos 和常用基础依赖版本时使用。适用于项目初始化、父 POM 生成、微服务技术基线收敛和依赖兼容性核对。
 ---
@@ -200,10 +200,10 @@ description: 当需要按后端 JDK 版本选择 Maven、Spring Boot、Spring Cl
    - `./mvnw -q -N help:effective-pom`
    - 看父 POM、properties、dependencyManagement 是否按预期生效
 3. 构建检查
-   - `./mvnw -pl aldemo -am -DskipTests validate`
-   - 如已配置 Enforcer，再补 `./mvnw -pl aldemo -am -DskipTests enforcer:enforce`
+   - `./mvnw -pl aldemohk -am -DskipTests validate`
+   - 如已配置 Enforcer，再补 `./mvnw -pl aldemohk -am -DskipTests enforcer:enforce`
 4. 依赖树检查
-   - `./mvnw -pl aldemo -am -DskipTests dependency:tree`
+   - `./mvnw -pl aldemohk -am -DskipTests dependency:tree`
    - 重点看 `spring-cloud*`、`spring-cloud-alibaba*`、数据库驱动、MyBatis-Plus 是否出现跨代冲突
 
 如果当前仓库还没有真实业务模块，至少也要对父工程和唯一应用模块做一次检查结论说明。

@@ -1,20 +1,18 @@
 @echo off
-rem aldemo backend + frontend launcher (Windows)
-rem opens two new windows for backend and frontend
+rem aldemohk backend + frontend launcher (Windows)
+rem Close this window to stop both processes
 setlocal
 
-set "PROJECT_NAME=GongSiPeiXunXiangMu"
-set "PROJECT_CODE=aldemo"
-set "SCRIPT_DIR=%~dp0"
+set "PROJECT_CODE=aldemohk"
 
-echo ========================================
-echo  Project: %PROJECT_NAME% (%PROJECT_CODE%)
-echo  Starting backend + frontend
-echo  Stop : close each window
-echo ========================================
+echo ==================================
+echo   %PROJECT_CODE% Full Stack Launcher
+echo   Close window to stop all
+echo ==================================
 
-start "aldemo-backend" cmd /k "%SCRIPT_DIR%start-backend.cmd"
-start "aldemo-frontend" cmd /k "%SCRIPT_DIR%start-frontend.cmd"
+start "%PROJECT_CODE%-backend" cmd /c "%~dp0start-backend.cmd"
+start "%PROJECT_CODE%-frontend" cmd /c "%~dp0start-frontend.cmd"
 
-endlocal
-exit /b 0
+echo Both services started in separate windows.
+echo Close those windows to stop.
+pause

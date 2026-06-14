@@ -35,14 +35,14 @@ function resolveChildPath(parentPath: string, childPath: string) {
 }
 
 function createMenuGroup(routeRecord: RouteRecordRaw, parentPath: string): MenuGroup | null {
-  if (!routeRecord.meta?.title) {
+  if (!routeRecord.meta?.title || routeRecord.meta?.hidden) {
     return null
   }
 
   const fullPath = resolveChildPath(parentPath, routeRecord.path)
 
   const children = (routeRecord.children ?? [])
-    .filter((child) => child.meta?.title)
+    .filter((child) => child.meta?.title && !child.meta?.hidden)
     .map((child) => ({
       path: resolveChildPath(fullPath, child.path),
       name: child.name as string,
@@ -109,7 +109,7 @@ const breadcrumbItems = computed(() =>
 )
 
 const isCollapsed = computed(() => navigationStore.collapsed)
-const sidebarTitle = computed(() => (isCollapsed.value ? 'AL' : '公司培训项目'))
+const sidebarTitle = computed(() => (isCollapsed.value ? 'AL' : 'aldemohk'))
 
 function toggleCollapsed() {
   navigationStore.toggleCollapsed()

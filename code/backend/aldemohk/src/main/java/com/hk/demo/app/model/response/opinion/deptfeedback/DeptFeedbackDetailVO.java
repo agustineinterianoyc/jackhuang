@@ -4,8 +4,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 /**
- * 专业反馈详情响应（R04 视角）。
- */
+ * 濠电偞鍨堕幐濠氬箰妞嬪海绠旈柣鏃傚帶閻鈧箍鍎遍ˇ钘壝洪鐐村仯闁搞儳鍏樺顕€鏌涙惔锛勭鐎规洦鍋勯濂稿川椤栨氨鏆旈梻浣瑰缁嬫垵锕?4 闂佽崵鍠愰悷銉ノ涘鍫稏婵°倕鎳忛弲顒€顭跨捄铏瑰闁? */
 public class DeptFeedbackDetailVO {
 
     private TaskInfo task;
@@ -37,8 +36,7 @@ public class DeptFeedbackDetailVO {
     }
 
     /**
-     * 任务概要信息。
-     */
+     * 濠电偛顕慨楣冾敋瑜庨幈銊╂偄婵傚鍋ラ梺绋挎湰缁诲秴煤閿濆惓搴ㄥ炊閿濆懎鈷夋繛瀵稿帶閹虫ɑ淇?     */
     public static class TaskInfo {
         private Long id;
         private Long surveyId;
@@ -124,8 +122,7 @@ public class DeptFeedbackDetailVO {
     }
 
     /**
-     * 模块信息（含附件）。
-     */
+     * 婵犵妲呴崹顏堝焵椤掑啯鐝柛瀣ㄥ劚鑿愰柛銉到婢ф彃霉閻撳孩鍤囬柡浣哥Ч瀹曠厧鈹戦崶褍澹嶉梻鍌氬€哥€氼剛鈧凹浜滈埢搴ㄥ閵堝棙娅栨繝銏ｆ硾閻楀啴宕?     */
     public static class ModuleInfo {
         private String moduleCode;
         private String moduleName;
@@ -157,8 +154,7 @@ public class DeptFeedbackDetailVO {
     }
 
     /**
-     * 附件信息。
-     */
+     * 闂傚倸鍊哥€氼剛鈧凹浜滈埢搴ㄥ閿涘嫧鏀抽梺鏂ユ櫅閸熲晝妲愰弽顓熺厪?     */
     public static class AttachmentInfo {
         private String fileId;
         private String fileName;
@@ -181,8 +177,7 @@ public class DeptFeedbackDetailVO {
     }
 
     /**
-     * 反馈意见行（含基层意见原文 + 专业反馈）。
-     */
+     * 闂備礁鎲￠悷銉х矓瑜版帇鈧懘顢橀姀鐘电杸闂婎偄娲﹂崙鐟邦焽瀹€鍕仩婵炴垶顭囬悞璺ㄧ磼鏉堛劎鎳囩€规洏鍎甸、鏇㈠閵忕姵鏆忛梺璇茬箳閸嬫盯宕愯ぐ鎺戠闁规鍠楅崰鍡椕归敐鍥剁劸闁哄們鍥ㄧ厸?+ 濠电偞鍨堕幐濠氬箰妞嬪海绠旈柣鏃傚帶閻鈧箍鍎遍ˇ钘壝洪鐐寸叆婵炴垶锕╁Σ鍫曟煃?     */
     public static class FeedbackItemInfo {
         private Long itemId;
         private String moduleCode;

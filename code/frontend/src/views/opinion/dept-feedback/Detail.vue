@@ -6,6 +6,10 @@ import { IconArrowLeft, IconSave } from '@arco-design/web-vue/es/icon'
 import {
   OPINION_DEPT_SUBMIT_STATUS_COLOR,
   OPINION_DEPT_AUDIT_STATUS_COLOR,
+  OPINION_MAIN_STATUS_TEXT,
+  OPINION_MAIN_STATUS_COLOR,
+  OPINION_DEPT_SUBMIT_STATUS_TEXT,
+  OPINION_DEPT_AUDIT_STATUS_TEXT,
 } from '@/constants/opinion'
 import {
   getDeptFeedbackDetail,
@@ -134,6 +138,24 @@ function auditStatusColor(status: string): string {
   return OPINION_DEPT_AUDIT_STATUS_COLOR[status as keyof typeof OPINION_DEPT_AUDIT_STATUS_COLOR] ?? 'gray'
 }
 
+function surveyStatusText(status: string): string {
+  return OPINION_MAIN_STATUS_TEXT[status as keyof typeof OPINION_MAIN_STATUS_TEXT] ?? status
+}
+
+function surveyStatusColor(status: string): string {
+  return OPINION_MAIN_STATUS_COLOR[status as keyof typeof OPINION_MAIN_STATUS_COLOR] ?? 'gray'
+}
+
+const submitStatusTextMap: Record<string, string> = OPINION_DEPT_SUBMIT_STATUS_TEXT
+const auditStatusTextMap: Record<string, string> = OPINION_DEPT_AUDIT_STATUS_TEXT
+
+function submitText(s: string): string {
+  return submitStatusTextMap[s] || s
+}
+function auditText(s: string): string {
+  return auditStatusTextMap[s] || s
+}
+
 onMounted(load)
 </script>
 
@@ -153,18 +175,18 @@ onMounted(load)
           <a-descriptions-item label="征集名称">{{ detail.task.surveyName }}</a-descriptions-item>
           <a-descriptions-item label="考核年份">{{ detail.task.assessYear }}年</a-descriptions-item>
           <a-descriptions-item label="征集状态">
-            <a-tag :color="submitStatusColor(detail.task.surveyStatus)" size="small">
-              {{ detail.task.surveyStatusText }}
+            <a-tag :color="surveyStatusColor(detail.task.surveyStatus)" size="small">
+              {{ surveyStatusText(detail.task.surveyStatus) }}
             </a-tag>
           </a-descriptions-item>
           <a-descriptions-item label="提交状态">
             <a-tag :color="submitStatusColor(detail.task.submitStatus)" size="small">
-              {{ detail.task.submitStatusText }}
+              {{ submitText(detail.task.submitStatus) }}
             </a-tag>
           </a-descriptions-item>
           <a-descriptions-item label="审核状态">
             <a-tag :color="auditStatusColor(detail.task.auditStatus)" size="small">
-              {{ detail.task.auditStatusText }}
+              {{ auditText(detail.task.auditStatus) }}
             </a-tag>
           </a-descriptions-item>
           <a-descriptions-item label="专业截止时间">{{ detail.task.deptDeadline }}</a-descriptions-item>

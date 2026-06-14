@@ -141,7 +141,7 @@ public class OpinionDeptAuditServiceImpl implements OpinionDeptAuditService {
             }
 
             DeptAuditListItemVO vo = new DeptAuditListItemVO();
-            vo.setId(t.getId());
+            vo.setTaskId(t.getId());
             vo.setSurveyId(t.getSurveyId());
             vo.setSurveyName(s.getName());
             vo.setAssessYear(s.getAssessYear());

@@ -5,8 +5,22 @@ import { Message, Modal } from '@arco-design/web-vue'
 import { IconArrowLeft } from '@arco-design/web-vue/es/icon'
 import { getDeptAuditDetail, passDeptAudit, rejectDeptAudit } from '@/api/opinion/dept-audit'
 import type { DeptAuditLog, DeptAuditModule, DeptAuditTask, DeptAuditDetail } from '@/types/opinion/dept-audit'
+import {
+  OPINION_DEPT_SUBMIT_STATUS_TEXT,
+  OPINION_DEPT_AUDIT_STATUS_TEXT,
+} from '@/constants/opinion'
 
 defineOptions({ name: 'OpinionDeptAuditDetail' })
+
+const deptSubmitText = OPINION_DEPT_SUBMIT_STATUS_TEXT
+const deptAuditText = OPINION_DEPT_AUDIT_STATUS_TEXT
+
+function submitText(s: string): string {
+  return (deptSubmitText as Record<string, string>)[s] || s
+}
+function auditText(s: string): string {
+  return (deptAuditText as Record<string, string>)[s] || s
+}
 
 const route = useRoute()
 const router = useRouter()
@@ -132,10 +146,10 @@ onMounted(load)
           <a-descriptions-item label="提交时间">{{ task?.submittedAt || '-' }}</a-descriptions-item>
           <a-descriptions-item label="专业截止时间">{{ task?.deptDeadline || '-' }}</a-descriptions-item>
           <a-descriptions-item label="填报状态">
-            <a-tag v-if="task" :color="fillStatusColor(task.submitStatus)" size="small">{{ task.submitStatusText }}</a-tag>
+            <a-tag v-if="task" :color="fillStatusColor(task.submitStatus)" size="small">{{ submitText(task.submitStatus) }}</a-tag>
           </a-descriptions-item>
           <a-descriptions-item label="审核状态">
-            <a-tag v-if="task" :color="auditStatusColor(task.auditStatus)" size="small">{{ task.auditStatusText }}</a-tag>
+            <a-tag v-if="task" :color="auditStatusColor(task.auditStatus)" size="small">{{ auditText(task.auditStatus) }}</a-tag>
           </a-descriptions-item>
         </a-descriptions>
 

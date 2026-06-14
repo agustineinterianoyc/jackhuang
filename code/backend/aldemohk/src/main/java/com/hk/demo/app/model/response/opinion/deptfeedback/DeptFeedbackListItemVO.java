@@ -7,7 +7,7 @@ import java.time.LocalDateTime;
  */
 public class DeptFeedbackListItemVO {
 
-    private Long id;
+    private Long taskId;
     private Long surveyId;
     private String surveyName;
     private Integer assessYear;
@@ -21,12 +21,12 @@ public class DeptFeedbackListItemVO {
     private String surveyStatus;
     private String surveyStatusText;
 
-    public Long getId() {
-        return id;
+    public Long getTaskId() {
+        return taskId;
     }
 
-    public void setId(Long id) {
-        this.id = id;
+    public void setTaskId(Long taskId) {
+        this.taskId = taskId;
     }
 
     public Long getSurveyId() {

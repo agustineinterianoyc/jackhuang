@@ -35,11 +35,8 @@ export interface DeptFeedbackTask {
   surveyName: string
   assessYear: number
   surveyStatus: string
-  surveyStatusText: string
   submitStatus: string
-  submitStatusText: string
   auditStatus: string
-  auditStatusText: string
   deptDeadline: string
   submittedAt: string | null
 }

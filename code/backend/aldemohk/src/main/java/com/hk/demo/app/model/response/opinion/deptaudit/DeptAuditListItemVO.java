@@ -3,11 +3,10 @@ package com.hk.demo.app.model.response.opinion.deptaudit;
 import java.time.LocalDateTime;
 
 /**
- * 专业审核列表行（R05 视角）。
- */
+ * 娑撴挷绗熺€光剝鐗抽崚妤勩€冪悰宀嬬礄R05 鐟欏棜顫楅敍澶堚偓? */
 public class DeptAuditListItemVO {
 
-    private Long id;
+    private Long taskId;
     private Long surveyId;
     private String surveyName;
     private Integer assessYear;
@@ -18,12 +17,12 @@ public class DeptAuditListItemVO {
     private String auditStatus;
     private String surveyStatus;
 
-    public Long getId() {
-        return id;
+    public Long getTaskId() {
+        return taskId;
     }
 
-    public void setId(Long id) {
-        this.id = id;
+    public void setTaskId(Long taskId) {
+        this.taskId = taskId;
     }
 
     public Long getSurveyId() {

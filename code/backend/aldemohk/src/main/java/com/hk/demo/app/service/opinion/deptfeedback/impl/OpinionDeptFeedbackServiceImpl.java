@@ -120,7 +120,7 @@ public class OpinionDeptFeedbackServiceImpl implements OpinionDeptFeedbackServic
                 continue;
             }
             DeptFeedbackListItemVO vo = new DeptFeedbackListItemVO();
-            vo.setId(t.getId());
+            vo.setTaskId(t.getId());
             vo.setSurveyId(t.getSurveyId());
             vo.setSurveyName(s.getName());
             vo.setAssessYear(s.getAssessYear());

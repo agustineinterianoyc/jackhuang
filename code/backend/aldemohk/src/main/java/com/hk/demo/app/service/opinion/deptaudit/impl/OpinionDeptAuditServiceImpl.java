@@ -128,8 +128,11 @@ public class OpinionDeptAuditServiceImpl implements OpinionDeptAuditService {
             vo.setModuleName(moduleNameText(t.getModuleCode()));
             vo.setDeptDeadline(null);
             vo.setSubmitStatus(t.getSubmitStatus());
+            vo.setSubmitStatusText(submitStatusText(t.getSubmitStatus()));
             vo.setAuditStatus(t.getAuditStatus());
+            vo.setAuditStatusText(deptAuditStatusText(t.getAuditStatus()));
             vo.setSurveyStatus(null);
+            vo.setSurveyStatusText(null);
             rows.add(vo);
         }
         return new PageResult<>(total, rows);

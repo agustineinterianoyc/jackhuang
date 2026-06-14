@@ -14,8 +14,11 @@ public class DeptAuditListItemVO {
     private String moduleName;
     private LocalDateTime deptDeadline;
     private String submitStatus;
+    private String submitStatusText;
     private String auditStatus;
+    private String auditStatusText;
     private String surveyStatus;
+    private String surveyStatusText;
 
     public Long getTaskId() {
         return taskId;
@@ -81,6 +84,14 @@ public class DeptAuditListItemVO {
         this.submitStatus = submitStatus;
     }
 
+    public String getSubmitStatusText() {
+        return submitStatusText;
+    }
+
+    public void setSubmitStatusText(String submitStatusText) {
+        this.submitStatusText = submitStatusText;
+    }
+
     public String getAuditStatus() {
         return auditStatus;
     }
@@ -89,11 +100,27 @@ public class DeptAuditListItemVO {
         this.auditStatus = auditStatus;
     }
 
+    public String getAuditStatusText() {
+        return auditStatusText;
+    }
+
+    public void setAuditStatusText(String auditStatusText) {
+        this.auditStatusText = auditStatusText;
+    }
+
     public String getSurveyStatus() {
         return surveyStatus;
     }
 
     public void setSurveyStatus(String surveyStatus) {
         this.surveyStatus = surveyStatus;
+    }
+
+    public String getSurveyStatusText() {
+        return surveyStatusText;
+    }
+
+    public void setSurveyStatusText(String surveyStatusText) {
+        this.surveyStatusText = surveyStatusText;
     }
 }

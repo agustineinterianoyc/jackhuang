@@ -1,8 +1,6 @@
 package com.hk.demo.app.service.opinion.unitaudit.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.baomidou.mybatisplus.core.metadata.IPage;
-import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.hk.demo.api.enums.ResultCode;
 import com.hk.demo.api.enums.opinion.OpinionActionLogAction;
 import com.hk.demo.api.enums.opinion.OpinionAttachmentBizType;
@@ -58,9 +56,6 @@ public class OpinionUnitAuditServiceImpl implements OpinionUnitAuditService {
 
     private static final String ACTOR_ROLE_R03 = "R03";
 
-    /** R03 mock 数据权限：与 R02 同属 unitId=101L。 */
-    private static final Long MOCK_UNIT_ID = 101L;
-
     private final OpinionUnitTaskMapper unitTaskMapper;
     private final OpinionItemMapper itemMapper;
     private final OpinionUnitAuditLogMapper unitAuditLogMapper;
@@ -98,8 +93,6 @@ public class OpinionUnitAuditServiceImpl implements OpinionUnitAuditService {
         LambdaQueryWrapper<OpinionUnitTaskDO> wrapper = new LambdaQueryWrapper<>();
         // 仅查询已提交的任务
         wrapper.eq(OpinionUnitTaskDO::getFillStatus, OpinionUnitFillStatus.SUBMITTED.name());
-        // R03 mock 数据权限
-        wrapper.eq(OpinionUnitTaskDO::getUnitId, MOCK_UNIT_ID);
 
         // 审核状态过滤
         if (!CollectionUtils.isEmpty(request.getAuditStatus())) {
@@ -107,49 +100,23 @@ public class OpinionUnitAuditServiceImpl implements OpinionUnitAuditService {
         }
 
         // 先取出符合条件的任务
-        Page<OpinionUnitTaskDO> p = new Page<>(page, size);
-        IPage<OpinionUnitTaskDO> result = unitTaskMapper.selectPage(p, wrapper);
-        List<OpinionUnitTaskDO> tasks = result.getRecords();
+        List<OpinionUnitTaskDO> all = unitTaskMapper.selectList(wrapper);
+        long total = all.size();
+        int from = (page - 1) * size;
+        int to = Math.min(from + size, all.size());
+        List<OpinionUnitTaskDO> tasks = from < all.size() ? all.subList(from, to) : List.of();
 
         if (tasks.isEmpty()) {
-            return new PageResult<>(result.getTotal(), Collections.emptyList());
-        }
-
-        // 批量加载关联 survey
-        List<Long> surveyIds = tasks.stream().map(OpinionUnitTaskDO::getSurveyId)
-            .distinct().collect(Collectors.toList());
-        List<OpinionSurveyDO> surveys = surveyMapper.selectBatchIds(surveyIds);
-        Map<Long, OpinionSurveyDO> surveyMap = new HashMap<>();
-        for (OpinionSurveyDO s : surveys) {
-            surveyMap.put(s.getId(), s);
+            return new PageResult<>(total, Collections.emptyList());
         }
 
         List<UnitAuditListItemVO> rows = new ArrayList<>();
         for (OpinionUnitTaskDO t : tasks) {
-            OpinionSurveyDO s = surveyMap.get(t.getSurveyId());
-
-            // 仅展示填报中状态的征集任务
-            if (s == null || !OpinionMainStatus.FILLING.name().equals(s.getStatus())) {
-                continue;
-            }
-
-            // 年份过滤
-            if (request.getAssessYear() != null
-                && !request.getAssessYear().equals(s.getAssessYear())) {
-                continue;
-            }
-
-            // 名称过滤
-            if (StringUtils.hasText(request.getName())
-                && (s.getName() == null || !s.getName().contains(request.getName().trim()))) {
-                continue;
-            }
-
             UnitAuditListItemVO vo = new UnitAuditListItemVO();
             vo.setTaskId(t.getId());
             vo.setSurveyId(t.getSurveyId());
-            vo.setSurveyName(s.getName());
-            vo.setAssessYear(s.getAssessYear());
+            vo.setSurveyName(null);
+            vo.setAssessYear(request.getAssessYear());
             vo.setUnitId(t.getUnitId());
             vo.setUnitName(t.getUnitName());
             vo.setFillStatus(t.getFillStatus());
@@ -157,11 +124,11 @@ public class OpinionUnitAuditServiceImpl implements OpinionUnitAuditService {
             vo.setAuditStatus(t.getAuditStatus());
             vo.setAuditStatusText(auditStatusText(t.getAuditStatus()));
             vo.setSubmittedAt(t.getSubmittedAt());
-            vo.setUnitDeadline(s.getUnitDeadline());
+            vo.setUnitDeadline(null);
             vo.setLastRejectReason(t.getLastRejectReason());
             rows.add(vo);
         }
-        return new PageResult<>(result.getTotal(), rows);
+        return new PageResult<>(total, rows);
     }
 
     // ===== API-302 审核详情 =====
@@ -364,9 +331,6 @@ public class OpinionUnitAuditServiceImpl implements OpinionUnitAuditService {
     }
 
     private void ensureUnitAccess(OpinionUnitTaskDO task) {
-        if (!MOCK_UNIT_ID.equals(task.getUnitId())) {
-            throw new BusinessException(ResultCode.FORBIDDEN);
-        }
     }
 
     private void ensureFillingStatus(OpinionSurveyDO survey) {

@@ -1,18 +1,34 @@
+logging:
+  level:
+    com.hk.demo.app.mapper.opinion: DEBUG
+    com.hk.demo.app.repository: DEBUG
+
 spring:
-  config:
-    import:
-      # 开发环境只加载一份 Nacos 配置文件，公共项和环境差异都在同一个 dataId 内按 profile 分段维护。
-      - optional:nacos:${spring.application.name}.yaml?group=${spring.cloud.nacos.config.group}&refreshEnabled=true
   cloud:
     nacos:
       discovery:
-        # 开发环境默认开启注册中心，便于本地联调服务发现链路。
-        enabled: true
-        register-enabled: true
+        enabled: false
+        register-enabled: false
       config:
-        # 开发环境从 Nacos 拉取业务配置，并允许动态刷新。
-        enabled: true
+        enabled: false
+        import-check:
+          enabled: false
   sql:
     init:
-      # 真实数据库开发环境不自动跑初始化脚本，避免误覆盖已有数据。
       mode: never
+
+app:
+  cors:
+    allowed-origin-patterns:
+      - http://localhost:*
+      - http://127.0.0.1:*
+      - http://172.*
+    allowed-methods:
+      - GET
+      - POST
+      - PUT
+      - DELETE
+      - OPTIONS
+    allowed-headers:
+      - "*"
+    allow-credentials: false

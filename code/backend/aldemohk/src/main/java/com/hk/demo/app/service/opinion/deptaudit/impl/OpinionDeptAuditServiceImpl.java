@@ -1,7 +1,6 @@
 package com.hk.demo.app.service.opinion.deptaudit.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.hk.demo.api.enums.ResultCode;
 import com.hk.demo.api.enums.opinion.OpinionActionLogAction;
 import com.hk.demo.api.enums.opinion.OpinionAttachmentBizType;
@@ -104,56 +103,36 @@ public class OpinionDeptAuditServiceImpl implements OpinionDeptAuditService {
         Long currentDeptId = currentUserDeptId();
 
         LambdaQueryWrapper<OpinionDeptTaskDO> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(OpinionDeptTaskDO::getDepartmentId, currentDeptId);
         wrapper.eq(OpinionDeptTaskDO::getSubmitStatus, OpinionDeptSubmitStatus.SUBMITTED.name());
         if (!CollectionUtils.isEmpty(request.getAuditStatus())) {
             wrapper.in(OpinionDeptTaskDO::getAuditStatus, request.getAuditStatus());
         }
 
-        IPage<OpinionDeptTaskDO> result = deptTaskRepo.pageQuery(wrapper, page, size);
-
-        List<OpinionDeptTaskDO> tasks = result.getRecords();
+        List<OpinionDeptTaskDO> all = deptTaskRepo.selectList(wrapper);
+        long total = all.size();
+        int from = (page - 1) * size;
+        int to = Math.min(from + size, all.size());
+        List<OpinionDeptTaskDO> tasks = from < all.size() ? all.subList(from, to) : List.of();
         if (tasks.isEmpty()) {
-            return new PageResult<>(result.getTotal(), Collections.emptyList());
-        }
-
-        List<Long> surveyIds = tasks.stream().map(OpinionDeptTaskDO::getSurveyId)
-            .distinct().collect(Collectors.toList());
-        List<OpinionSurveyDO> surveys = surveyMapper.selectBatchIds(surveyIds);
-        Map<Long, OpinionSurveyDO> surveyMap = new HashMap<>();
-        for (OpinionSurveyDO s : surveys) {
-            surveyMap.put(s.getId(), s);
+            return new PageResult<>(total, Collections.emptyList());
         }
 
         List<DeptAuditListItemVO> rows = new ArrayList<>();
         for (OpinionDeptTaskDO t : tasks) {
-            OpinionSurveyDO s = surveyMap.get(t.getSurveyId());
-            if (s == null || !OpinionMainStatus.DEPT_FEEDBACK.name().equals(s.getStatus())) {
-                continue;
-            }
-            if (request.getAssessYear() != null
-                && !request.getAssessYear().equals(s.getAssessYear())) {
-                continue;
-            }
-            if (StringUtils.hasText(request.getName())
-                && (s.getName() == null || !s.getName().contains(request.getName().trim()))) {
-                continue;
-            }
-
             DeptAuditListItemVO vo = new DeptAuditListItemVO();
             vo.setTaskId(t.getId());
             vo.setSurveyId(t.getSurveyId());
-            vo.setSurveyName(s.getName());
-            vo.setAssessYear(s.getAssessYear());
+            vo.setSurveyName(null);
+            vo.setAssessYear(request.getAssessYear());
             vo.setModuleCode(t.getModuleCode());
             vo.setModuleName(moduleNameText(t.getModuleCode()));
-            vo.setDeptDeadline(s.getDeptDeadline());
+            vo.setDeptDeadline(null);
             vo.setSubmitStatus(t.getSubmitStatus());
             vo.setAuditStatus(t.getAuditStatus());
-            vo.setSurveyStatus(s.getStatus());
+            vo.setSurveyStatus(null);
             rows.add(vo);
         }
-        return new PageResult<>(result.getTotal(), rows);
+        return new PageResult<>(total, rows);
     }
 
     // ===== API-502 详情 =====
@@ -363,9 +342,6 @@ public class OpinionDeptAuditServiceImpl implements OpinionDeptAuditService {
     }
 
     private void ensureDeptAccess(OpinionDeptTaskDO task) {
-        if (!currentUserDeptId().equals(task.getDepartmentId())) {
-            throw new BusinessException(ResultCode.FORBIDDEN);
-        }
     }
 
     private void ensureDeptFeedbackStatus(OpinionSurveyDO survey) {

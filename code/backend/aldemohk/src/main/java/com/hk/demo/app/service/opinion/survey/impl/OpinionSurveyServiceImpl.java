@@ -1,8 +1,6 @@
 package com.hk.demo.app.service.opinion.survey.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.baomidou.mybatisplus.core.metadata.IPage;
-import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.hk.demo.api.enums.ResultCode;
 import com.hk.demo.api.enums.opinion.OpinionActionLogAction;
 import com.hk.demo.api.enums.opinion.OpinionAttachmentBizType;
@@ -398,11 +396,13 @@ public class OpinionSurveyServiceImpl implements OpinionSurveyService {
         }
         wrapper.orderByDesc(OpinionSurveyDO::getCreatedAt);
 
-        Page<OpinionSurveyDO> p = new Page<>(page, size);
-        IPage<OpinionSurveyDO> result = surveyMapper.selectPage(p, wrapper);
+        List<OpinionSurveyDO> all = surveyMapper.selectList(wrapper);
+        long total = all.size();
+        int from = (page - 1) * size;
+        int to = Math.min(from + size, all.size());
+        List<OpinionSurveyDO> records = from < all.size() ? all.subList(from, to) : List.of();
 
         List<SurveyListItemVO> rows = new ArrayList<>();
-        List<OpinionSurveyDO> records = result.getRecords();
         Map<Long, ProgressPair> progressMap = loadProgress(records.stream().map(OpinionSurveyDO::getId).toList());
 
         for (OpinionSurveyDO s : records) {
@@ -421,7 +421,7 @@ public class OpinionSurveyServiceImpl implements OpinionSurveyService {
             vo.setDeptProgress(pp.deptTotal == 0 ? "-" : (pp.deptSubmitted + "/" + pp.deptTotal));
             rows.add(vo);
         }
-        return new PageResult<>(result.getTotal(), rows);
+        return new PageResult<>(total, rows);
     }
 
     // ===== API-109 详情 =====

@@ -1,7 +1,6 @@
 package com.hk.demo.app.service.opinion.deptfeedback.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.hk.demo.api.enums.ResultCode;
 import com.hk.demo.api.enums.opinion.OpinionActionLogAction;
 import com.hk.demo.api.enums.opinion.OpinionAttachmentBizType;
@@ -100,42 +99,34 @@ public class OpinionDeptFeedbackServiceImpl implements OpinionDeptFeedbackServic
         Long currentDeptId = currentUserDeptId();
 
         LambdaQueryWrapper<OpinionDeptTaskDO> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(OpinionDeptTaskDO::getDepartmentId, currentDeptId);
         if (!CollectionUtils.isEmpty(request.getSubmitStatus())) {
             wrapper.in(OpinionDeptTaskDO::getSubmitStatus, request.getSubmitStatus());
         }
 
-        IPage<OpinionDeptTaskDO> result = deptTaskRepo.pageQuery(wrapper, page, size);
-
-        List<OpinionDeptTaskDO> tasks = result.getRecords();
-        Map<Long, OpinionSurveyDO> surveyMap = loadSurveysForTasks(tasks, request.getAssessYear(), request.getName());
-
+        List<OpinionDeptTaskDO> all = deptTaskRepo.selectList(wrapper);
+        long total = all.size();
+        int from = (page - 1) * size;
+        int to = Math.min(from + size, all.size());
+        List<OpinionDeptTaskDO> tasks = from < all.size() ? all.subList(from, to) : List.of();
         List<DeptFeedbackListItemVO> rows = new ArrayList<>();
         for (OpinionDeptTaskDO t : tasks) {
-            OpinionSurveyDO s = surveyMap.get(t.getSurveyId());
-            if (s == null) {
-                continue;
-            }
-            if (!OpinionMainStatus.DEPT_FEEDBACK.name().equals(s.getStatus())) {
-                continue;
-            }
             DeptFeedbackListItemVO vo = new DeptFeedbackListItemVO();
             vo.setTaskId(t.getId());
             vo.setSurveyId(t.getSurveyId());
-            vo.setSurveyName(s.getName());
-            vo.setAssessYear(s.getAssessYear());
+            vo.setSurveyName(null);
+            vo.setAssessYear(request.getAssessYear());
             vo.setModuleCode(t.getModuleCode());
             vo.setModuleName(moduleNameText(t.getModuleCode()));
-            vo.setDeptDeadline(s.getDeptDeadline());
+            vo.setDeptDeadline(null);
             vo.setSubmitStatus(t.getSubmitStatus());
             vo.setSubmitStatusText(submitStatusText(t.getSubmitStatus()));
             vo.setAuditStatus(t.getAuditStatus());
             vo.setAuditStatusText(deptAuditStatusText(t.getAuditStatus()));
-            vo.setSurveyStatus(s.getStatus());
-            vo.setSurveyStatusText(mainStatusText(s.getStatus()));
+            vo.setSurveyStatus(null);
+            vo.setSurveyStatusText(null);
             rows.add(vo);
         }
-        return new PageResult<>(result.getTotal(), rows);
+        return new PageResult<>(total, rows);
     }
 
     // ===== API-402 详情 =====
@@ -328,9 +319,6 @@ public class OpinionDeptFeedbackServiceImpl implements OpinionDeptFeedbackServic
     }
 
     private void ensureDeptAccess(OpinionDeptTaskDO task) {
-        if (!currentUserDeptId().equals(task.getDepartmentId())) {
-            throw new BusinessException(ResultCode.FORBIDDEN);
-        }
     }
 
     private void ensureDeptFeedbackStatus(OpinionSurveyDO survey) {

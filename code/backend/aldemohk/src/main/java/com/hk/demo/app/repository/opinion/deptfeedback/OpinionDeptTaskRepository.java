@@ -22,6 +22,13 @@ public class OpinionDeptTaskRepository {
     }
 
     /**
+     * 按条件查询全部 dept_task。
+     */
+    public List<OpinionDeptTaskDO> selectList(LambdaQueryWrapper<OpinionDeptTaskDO> wrapper) {
+        return mapper.selectList(wrapper);
+    }
+
+    /**
      * 按条件分页查询 dept_task。
      */
     public IPage<OpinionDeptTaskDO> pageQuery(LambdaQueryWrapper<OpinionDeptTaskDO> wrapper, int page, int size) {

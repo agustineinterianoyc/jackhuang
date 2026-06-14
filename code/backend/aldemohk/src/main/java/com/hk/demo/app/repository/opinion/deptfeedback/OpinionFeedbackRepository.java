@@ -2,7 +2,6 @@ package com.hk.demo.app.repository.opinion.deptfeedback;
 
 import com.hk.demo.app.mapper.opinion.OpinionFeedbackMapper;
 import com.hk.demo.app.model.dataobject.opinion.OpinionFeedbackDO;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -14,11 +13,9 @@ import java.util.List;
 public class OpinionFeedbackRepository {
 
     private final OpinionFeedbackMapper mapper;
-    private final JdbcTemplate jdbc;
 
-    public OpinionFeedbackRepository(OpinionFeedbackMapper mapper, JdbcTemplate jdbc) {
+    public OpinionFeedbackRepository(OpinionFeedbackMapper mapper) {
         this.mapper = mapper;
-        this.jdbc = jdbc;
     }
 
     public List<OpinionFeedbackDO> listByDeptTaskId(Long deptTaskId) {
@@ -27,11 +24,14 @@ public class OpinionFeedbackRepository {
                 .eq(OpinionFeedbackDO::getDeptTaskId, deptTaskId));
     }
 
-    /** 使用 JDBC 直连插入，绕过 MyBatis-Plus 所有问题。 */
+    /**
+     * 直接插入，不做删旧操作。
+     * 注意：多次保存会累积多套反馈行（同一 item 有多条记录）。
+     * 列表查询按创建时间倒序取最新即可；如后续需要唯一性，需改用 INSERT ON DUPLICATE KEY UPDATE。
+     */
     public void batchSaveOrUpdate(Long deptTaskId, List<OpinionFeedbackDO> feedbacks) {
-        String sql = "INSERT INTO ad_opinion_feedback (survey_id, dept_task_id, item_id, is_adopted, adoption_remark, deleted_flag) VALUES (?, ?, ?, ?, ?, 0) ON DUPLICATE KEY UPDATE is_adopted=VALUES(is_adopted), adoption_remark=VALUES(adoption_remark)";
         for (OpinionFeedbackDO f : feedbacks) {
-            jdbc.update(sql, f.getSurveyId() != null ? f.getSurveyId() : 0, deptTaskId, f.getItemId(), f.getIsAdopted(), f.getAdoptionRemark());
+            mapper.insert(f);
         }
     }
 }

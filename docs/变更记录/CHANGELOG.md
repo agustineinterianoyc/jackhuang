@@ -1,24 +1,26 @@
 # CHANGELOG
 
-## 2026-06-14 — 项目重新初始化（aldemo → aldemohk）
+[项目初始化前-20260614105111/](../历史归档/项目初始化前-20260614105111/CHANGELOG.md)
 
-- **变更类型**：项目级身份重命名
-- **变更摘要**：基于 `project-init` 流程，将项目从 `aldemo`（公司培训项目）重新初始化为 `aldemohk`。
-- **改动范围**：
-  - 业务模块物理目录重命名：`code/backend/aldemo/` → `code/backend/aldemohk/`
-  - 全仓库文本替换：`aldemo` → `aldemohk`，`Aldemo` → `Aldemohk`
-  - 启动类重命名：`AldemoApplication` → `AldemohkApplication`
-  - Nacos 配置重命名：`aldemo.yaml` → `aldemohk.yaml`
-  - 前端标题/项目名统一为 `aldemohk`
-  - 数据库名/Maven artifactId/spring.application.name/Nacos namespace 统一为 `aldemohk`
-  - 清理全部本地产物（target/、node_modules/、dist/、.opencode/node_modules）
-  - 旧文档归档至 `docs/历史归档/项目初始化前-20260614105111/` 并重建最小骨架
-  - 修复批量替换引入的 UTF-8 BOM
-- **影响模块**：全部
-- **验证结果**：
-  - Maven 5/5 模块 validate SUCCESS
-  - 依赖树版本完全匹配基线 B（JDK 21 + Boot 4.0.6 + Cloud 2025.1.0 + Alibaba 2025.1.0.0）
-  - 前端 type-check 通过，build 成功
-- **剩余待人工补充**：
-  - MySQL 数据库 `aldemohk` 建库与授权
-  - Nacos 环境配置（namespace: aldemohk, dataId: aldemohk.yaml）
+## 2026-06-14 — Bug 修复（提交 e9a6ff4, bf0bc23, ed01d2b）
+
+### Bug 修复
+
+| Bug | 影响 | 根因 | 修复 | 提交 |
+|-----|------|------|------|------|
+| 专业审核详情页 500 | P05 页面不可用 | `detail()` 限制仅 PENDING 可查看 | 移除状态检查，所有状态均可查看 | `e9a6ff4` |
+| 专业审核列表状态显示空白 | 提交状态/审核状态不显示 | `DeptAuditListItemVO` 缺少 `*Text` 字段 | 补充 `submitStatusText`/`auditStatusText` | `bf0bc23` |
+| 专业反馈保存 500 | 反馈数据无法持久化 | 多次保存同一 dept_task 时唯一键冲突 | `INSERT ON DUPLICATE KEY UPDATE` | `ed01d2b` |
+| Feedback 列表查询空返回 | 审核详情页无反馈数据 | MyBatis-Plus `selectList` 在 Boot4 下返回空 | FeedbackRepository 改用 JDBC 直连 | `e9a6ff4` |
+
+### 功能变更
+
+| 变更 | 描述 | 提交 |
+|------|------|------|
+| 专业反馈行增加备注 | `ad_opinion_feedback` 新增 `remark VARCHAR(500)` | `ed01d2b` |
+| STEP-005 全栈开发 | P04+P05 后端 10 个 API + 前端 4 个页面 | `9ff5b66` `7305511` |
+| STEP-006 进度/提醒 | API-601~604 进度查询+提醒 | `334d7d9` |
+| 数据隔离修复 | 移除 unit-audit/dept-feedback/dept-audit 硬编码隔离 | `334d7d9` |
+
+- **影响模块**：`opinion`
+- **验证结果**：17/17 功能测试通过，全流程 E2E 通过

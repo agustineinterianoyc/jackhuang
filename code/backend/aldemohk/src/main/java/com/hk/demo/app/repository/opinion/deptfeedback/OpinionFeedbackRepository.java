@@ -1,8 +1,8 @@
 package com.hk.demo.app.repository.opinion.deptfeedback;
 
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.hk.demo.app.mapper.opinion.OpinionFeedbackMapper;
 import com.hk.demo.app.model.dataobject.opinion.OpinionFeedbackDO;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -14,28 +14,24 @@ import java.util.List;
 public class OpinionFeedbackRepository {
 
     private final OpinionFeedbackMapper mapper;
+    private final JdbcTemplate jdbc;
 
-    public OpinionFeedbackRepository(OpinionFeedbackMapper mapper) {
+    public OpinionFeedbackRepository(OpinionFeedbackMapper mapper, JdbcTemplate jdbc) {
         this.mapper = mapper;
+        this.jdbc = jdbc;
     }
 
-    /**
-     * 按 dept_task_id 查询全部反馈行。
-     */
     public List<OpinionFeedbackDO> listByDeptTaskId(Long deptTaskId) {
-        LambdaQueryWrapper<OpinionFeedbackDO> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(OpinionFeedbackDO::getDeptTaskId, deptTaskId);
-        return mapper.selectList(wrapper);
+        return mapper.selectList(
+            new com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<OpinionFeedbackDO>()
+                .eq(OpinionFeedbackDO::getDeptTaskId, deptTaskId));
     }
 
-    /**
-     * 整批替换：先删该 dept_task 的旧行，再批量插入新行。
-     */
+    /** 使用 JDBC 直连插入，绕过 MyBatis-Plus 所有问题。 */
     public void batchSaveOrUpdate(Long deptTaskId, List<OpinionFeedbackDO> feedbacks) {
-        mapper.delete(new LambdaQueryWrapper<OpinionFeedbackDO>()
-            .eq(OpinionFeedbackDO::getDeptTaskId, deptTaskId));
+        String sql = "INSERT INTO ad_opinion_feedback (survey_id, dept_task_id, item_id, is_adopted, adoption_remark, deleted_flag) VALUES (?, ?, ?, ?, ?, 0) ON DUPLICATE KEY UPDATE is_adopted=VALUES(is_adopted), adoption_remark=VALUES(adoption_remark)";
         for (OpinionFeedbackDO f : feedbacks) {
-            mapper.insert(f);
+            jdbc.update(sql, f.getSurveyId() != null ? f.getSurveyId() : 0, deptTaskId, f.getItemId(), f.getIsAdopted(), f.getAdoptionRemark());
         }
     }
 }

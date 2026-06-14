@@ -149,3 +149,45 @@ export const OPINION_UNIT_AUDIT_STATUS_COLOR: Record<OpinionUnitAuditStatus, str
   PASS: 'green',
   REJECTED: 'red',
 }
+
+/** 专业部门提交状态。 */
+export const OPINION_DEPT_SUBMIT_STATUS = {
+  PENDING: 'PENDING',
+  SUBMITTED: 'SUBMITTED',
+} as const
+
+export type OpinionDeptSubmitStatus = (typeof OPINION_DEPT_SUBMIT_STATUS)[keyof typeof OPINION_DEPT_SUBMIT_STATUS]
+
+export const OPINION_DEPT_SUBMIT_STATUS_TEXT: Record<OpinionDeptSubmitStatus, string> = {
+  PENDING: '待提交',
+  SUBMITTED: '已提交',
+}
+
+export const OPINION_DEPT_SUBMIT_STATUS_COLOR: Record<OpinionDeptSubmitStatus, string> = {
+  PENDING: 'orange',
+  SUBMITTED: 'green',
+}
+
+/** 专业部门审核状态。 */
+export const OPINION_DEPT_AUDIT_STATUS = {
+  NONE: 'NONE',
+  PENDING: 'PENDING',
+  PASS: 'PASS',
+  REJECTED: 'REJECTED',
+} as const
+
+export type OpinionDeptAuditStatus = (typeof OPINION_DEPT_AUDIT_STATUS)[keyof typeof OPINION_DEPT_AUDIT_STATUS]
+
+export const OPINION_DEPT_AUDIT_STATUS_TEXT: Record<OpinionDeptAuditStatus, string> = {
+  NONE: '-',
+  PENDING: '待审核',
+  PASS: '已审核',
+  REJECTED: '已退回',
+}
+
+export const OPINION_DEPT_AUDIT_STATUS_COLOR: Record<OpinionDeptAuditStatus, string> = {
+  NONE: 'gray',
+  PENDING: 'orange',
+  PASS: 'green',
+  REJECTED: 'red',
+}

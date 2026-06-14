@@ -55,4 +55,17 @@ public interface OpinionSurveyService {
      * API-110 绩效退回基层（R01 在主状态 FILLING 时退回单个基层）。
      */
     SurveyStatusVO opsRejectUnit(Long surveyId, Long unitTaskId, String rejectReason);
+
+    /**
+     * API-105 开启专业反馈（FILLING → DEPT_FEEDBACK）。
+     *
+     * 前置：全部基层已审核通过（所有 unit_task.audit_status='PASS'）。
+     * 动作：推进主状态，初始化 dept_task + feedback 占位行。
+     */
+    SurveyStatusVO openDeptFeedback(Long surveyId);
+
+    /**
+     * API-111 绩效退回专业（R01 在 DEPT_FEEDBACK 时退回单个部门）。
+     */
+    SurveyStatusVO opsRejectDept(Long surveyId, Long deptTaskId, String rejectReason);
 }

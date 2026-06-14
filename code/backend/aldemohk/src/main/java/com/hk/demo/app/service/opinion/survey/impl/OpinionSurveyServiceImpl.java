@@ -13,6 +13,8 @@ import com.hk.demo.api.enums.opinion.OpinionUnitFillStatus;
 import com.hk.demo.api.enums.opinion.OpinionUnitAuditStatus;
 import com.hk.demo.app.mapper.opinion.OpinionAttachmentMapper;
 import com.hk.demo.app.mapper.opinion.OpinionDeptTaskMapper;
+import com.hk.demo.app.mapper.opinion.OpinionFeedbackMapper;
+import com.hk.demo.app.mapper.opinion.OpinionItemMapper;
 import com.hk.demo.app.mapper.opinion.OpinionSurveyMapper;
 import com.hk.demo.app.mapper.opinion.OpinionSurveyModuleMapper;
 import com.hk.demo.app.mapper.opinion.OpinionSurveyTargetMapper;
@@ -20,11 +22,14 @@ import com.hk.demo.app.mapper.opinion.OpinionUnitAuditLogMapper;
 import com.hk.demo.app.mapper.opinion.OpinionUnitTaskMapper;
 import com.hk.demo.app.model.dataobject.opinion.OpinionAttachmentDO;
 import com.hk.demo.app.model.dataobject.opinion.OpinionDeptTaskDO;
+import com.hk.demo.app.model.dataobject.opinion.OpinionFeedbackDO;
+import com.hk.demo.app.model.dataobject.opinion.OpinionItemDO;
 import com.hk.demo.app.model.dataobject.opinion.OpinionSurveyDO;
 import com.hk.demo.app.model.dataobject.opinion.OpinionSurveyModuleDO;
 import com.hk.demo.app.model.dataobject.opinion.OpinionSurveyTargetDO;
 import com.hk.demo.app.model.dataobject.opinion.OpinionUnitAuditLogDO;
 import com.hk.demo.app.model.dataobject.opinion.OpinionUnitTaskDO;
+import com.hk.demo.app.model.dataobject.opinion.OpinionDeptAuditLogDO;
 import com.hk.demo.app.model.request.opinion.survey.SurveyListRequest;
 import com.hk.demo.app.model.request.opinion.survey.SurveySaveRequest;
 import com.hk.demo.app.model.response.opinion.survey.SurveyDetailVO;
@@ -33,6 +38,7 @@ import com.hk.demo.app.model.response.opinion.survey.SurveyStartVO;
 import com.hk.demo.app.model.response.opinion.survey.SurveyStatusVO;
 import com.hk.demo.app.service.opinion.log.OpinionActionLogger;
 import com.hk.demo.app.service.opinion.mock.OpinionMockMasterDataProvider;
+import com.hk.demo.app.service.opinion.mock.OpinionMockMasterDataProvider.DeptInfo;
 import com.hk.demo.app.service.opinion.mock.OpinionMockMasterDataProvider.UnitInfo;
 import com.hk.demo.app.service.opinion.state.OpinionStateMachine;
 import com.hk.demo.app.service.opinion.survey.OpinionSurveyService;
@@ -75,6 +81,8 @@ public class OpinionSurveyServiceImpl implements OpinionSurveyService {
     private final OpinionUnitTaskMapper unitTaskMapper;
     private final OpinionUnitAuditLogMapper unitAuditLogMapper;
     private final OpinionDeptTaskMapper deptTaskMapper;
+    private final OpinionFeedbackMapper feedbackMapper;
+    private final OpinionItemMapper itemMapper;
     private final OpinionStateMachine stateMachine;
     private final OpinionActionLogger actionLogger;
     private final OpinionMockMasterDataProvider masterData;
@@ -87,6 +95,8 @@ public class OpinionSurveyServiceImpl implements OpinionSurveyService {
                                     OpinionUnitTaskMapper unitTaskMapper,
                                     OpinionUnitAuditLogMapper unitAuditLogMapper,
                                     OpinionDeptTaskMapper deptTaskMapper,
+                                    OpinionFeedbackMapper feedbackMapper,
+                                    OpinionItemMapper itemMapper,
                                     OpinionStateMachine stateMachine,
                                     OpinionActionLogger actionLogger,
                                     OpinionMockMasterDataProvider masterData) {
@@ -97,6 +107,8 @@ public class OpinionSurveyServiceImpl implements OpinionSurveyService {
         this.unitTaskMapper = unitTaskMapper;
         this.unitAuditLogMapper = unitAuditLogMapper;
         this.deptTaskMapper = deptTaskMapper;
+        this.feedbackMapper = feedbackMapper;
+        this.itemMapper = itemMapper;
         this.stateMachine = stateMachine;
         this.actionLogger = actionLogger;
         this.masterData = masterData;
@@ -258,6 +270,112 @@ public class OpinionSurveyServiceImpl implements OpinionSurveyService {
         actionLogger.log(surveyId, OpinionActionLogAction.OPS_REJECT_UNIT,
             null, null, ACTOR_ROLE_R01, actor,
             "taskId=" + unitTaskId + " reason=" + truncateReason(rejectReason));
+
+        return toStatusVO(survey);
+    }
+
+    // ===== API-105 开启专业反馈 =====
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public SurveyStatusVO openDeptFeedback(Long surveyId) {
+        OpinionSurveyDO survey = requireExisting(surveyId);
+
+        OpinionMainStatus from = OpinionMainStatus.fromName(survey.getStatus());
+        OpinionMainStatus to = OpinionMainStatus.DEPT_FEEDBACK;
+        stateMachine.assertTransition(from, to);
+
+        List<OpinionUnitTaskDO> unitTasks = unitTaskMapper.selectList(
+            new LambdaQueryWrapper<OpinionUnitTaskDO>()
+                .eq(OpinionUnitTaskDO::getSurveyId, surveyId));
+        for (OpinionUnitTaskDO ut : unitTasks) {
+            if (!OpinionUnitAuditStatus.PASS.name().equals(ut.getAuditStatus())) {
+                throw new BusinessException(ResultCode.OPINION_ILLEGAL_STATE.getCode(),
+                    "存在尚未通过审核的基层意见，不可开启专业反馈");
+            }
+        }
+
+        Long actor = masterData.currentUserId();
+        LocalDateTime now = LocalDateTime.now();
+
+        survey.setStatus(to.name());
+        survey.setDeptOpenAt(now);
+        survey.setUpdatedBy(actor);
+        surveyMapper.updateById(survey);
+
+        List<OpinionSurveyModuleDO> modules = moduleMapper.selectList(
+            new LambdaQueryWrapper<OpinionSurveyModuleDO>()
+                .eq(OpinionSurveyModuleDO::getSurveyId, surveyId));
+
+        List<OpinionItemDO> items = itemMapper.selectList(
+            new LambdaQueryWrapper<OpinionItemDO>()
+                .eq(OpinionItemDO::getSurveyId, surveyId)
+                .eq(OpinionItemDO::getModuleCode, modules.stream().map(OpinionSurveyModuleDO::getModuleCode).collect(Collectors.toList())));
+
+        int created = 0;
+        List<DeptInfo> deptList = masterData.listAllDepts();
+        for (DeptInfo dept : deptList) {
+            for (OpinionSurveyModuleDO mod : modules) {
+                OpinionDeptTaskDO deptTask = new OpinionDeptTaskDO();
+                deptTask.setSurveyId(surveyId);
+                deptTask.setDepartmentId(dept.id());
+                deptTask.setDepartmentName(dept.name());
+                deptTask.setModuleCode(mod.getModuleCode());
+                deptTask.setSubmitStatus("PENDING");
+                deptTask.setAuditStatus("NONE");
+                deptTaskMapper.insert(deptTask);
+
+                for (OpinionItemDO item : items) {
+                    if (item.getModuleCode().equals(mod.getModuleCode())) {
+                        OpinionFeedbackDO fb = new OpinionFeedbackDO();
+                        fb.setSurveyId(surveyId);
+                        fb.setDeptTaskId(deptTask.getId());
+                        fb.setItemId(item.getId());
+                        fb.setIsAdopted(null);
+                        fb.setAdoptionRemark(null);
+                        feedbackMapper.insert(fb);
+                    }
+                }
+                created++;
+            }
+        }
+
+        actionLogger.log(surveyId, OpinionActionLogAction.START_DEPT_FEEDBACK,
+            from.name(), to.name(), ACTOR_ROLE_R01, actor,
+            "created dept_task=" + created);
+
+        log.info("[opinion] dept feedback opened: surveyId={}, deptTasks={}", surveyId, created);
+        return toStatusVO(survey);
+    }
+
+    // ===== API-111 绩效退回专业 =====
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public SurveyStatusVO opsRejectDept(Long surveyId, Long deptTaskId, String rejectReason) {
+        OpinionSurveyDO survey = requireExisting(surveyId);
+        OpinionMainStatus mainStatus = OpinionMainStatus.fromName(survey.getStatus());
+        stateMachine.assertCurrent(mainStatus, OpinionMainStatus.DEPT_FEEDBACK);
+
+        OpinionDeptTaskDO task = deptTaskMapper.selectById(deptTaskId);
+        if (task == null || !task.getSurveyId().equals(surveyId)) {
+            throw new BusinessException(ResultCode.OPINION_TASK_NOT_FOUND);
+        }
+        if (!"PENDING".equals(task.getAuditStatus())) {
+            throw new BusinessException(ResultCode.OPINION_ILLEGAL_STATE.getCode(),
+                "仅待审核状态的专业任务可被退回");
+        }
+        if (rejectReason == null || rejectReason.isBlank()) {
+            throw new BusinessException(ResultCode.OPINION_REJECT_REASON_REQUIRED);
+        }
+
+        Long actor = masterData.currentUserId();
+        task.setSubmitStatus("PENDING");
+        task.setAuditStatus("REJECTED");
+        task.setLastRejectReason(rejectReason);
+        deptTaskMapper.updateById(task);
+
+        actionLogger.log(surveyId, OpinionActionLogAction.OPS_REJECT_DEPT,
+            null, null, ACTOR_ROLE_R01, actor,
+            "deptTaskId=" + deptTaskId + " reason=" + truncateReason(rejectReason));
 
         return toStatusVO(survey);
     }

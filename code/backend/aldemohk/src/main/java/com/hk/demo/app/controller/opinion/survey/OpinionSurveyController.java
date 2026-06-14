@@ -25,9 +25,8 @@ import org.springframework.web.bind.annotation.RestController;
 /**
  * P01 意见征集管理控制器（绩效管理员 R01）。
  *
- * 实现需求包 STEP-003 关联接口：API-101 / 102 / 103 / 104 / 108 / 109。
+ * 实现需求包 STEP-003 关联接口：API-101 / 102 / 103 / 104 / 105 / 108 / 109 / 110 / 111。
  *
- * TODO(STEP-005): API-105 开启专业反馈、API-111 绩效退回专业。
  * TODO(STEP-007): API-106 / API-107 / 汇总采纳与发布。
  */
 @RestController
@@ -75,6 +74,14 @@ public class OpinionSurveyController {
     }
 
     /**
+     * API-105 开启专业反馈。
+     */
+    @PostMapping("/{id}/open-dept-feedback")
+    public ApiResponse<SurveyStatusVO> openDeptFeedback(@PathVariable("id") Long id) {
+        return ApiResponseFactory.success(service.openDeptFeedback(id));
+    }
+
+    /**
      * API-108 征集列表查询。
      */
     @PostMapping("/list")
@@ -99,5 +106,16 @@ public class OpinionSurveyController {
         String rejectReason = body.getOrDefault("rejectReason", "");
         return ApiResponseFactory.success(service.opsRejectUnit(id, body.get("unitTaskId") != null ?
             Long.parseLong(body.get("unitTaskId")) : null, rejectReason));
+    }
+
+    /**
+     * API-111 绩效退回专业。
+     */
+    @PostMapping("/{id}/ops-reject-dept")
+    public ApiResponse<SurveyStatusVO> opsRejectDept(@PathVariable("id") Long id,
+                                                      @RequestBody Map<String, String> body) {
+        String rejectReason = body.getOrDefault("rejectReason", "");
+        return ApiResponseFactory.success(service.opsRejectDept(id, body.get("deptTaskId") != null ?
+            Long.parseLong(body.get("deptTaskId")) : null, rejectReason));
     }
 }

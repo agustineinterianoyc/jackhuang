@@ -56,6 +56,26 @@ public class OpinionMockMasterDataProvider {
     }
 
     /**
+     * 专业部门字典。
+     */
+    private static final List<DeptInfo> DEPTS = List.of(
+        new DeptInfo(1L, "财务部"),
+        new DeptInfo(2L, "发展部"),
+        new DeptInfo(3L, "党委宣传部"),
+        new DeptInfo(4L, "安监部"),
+        new DeptInfo(5L, "设备部")
+    );
+
+    private static final Map<Long, DeptInfo> DEPT_INDEX;
+
+    static {
+        DEPT_INDEX = new java.util.HashMap<>();
+        for (DeptInfo d : DEPTS) {
+            DEPT_INDEX.put(d.id(), d);
+        }
+    }
+
+    /**
      * Mock 当前用户 ID。
      *
      * 实际项目中应从安全上下文读取；此处固定 1L 用于本期开发与联调。
@@ -79,8 +99,28 @@ public class OpinionMockMasterDataProvider {
     }
 
     /**
+     * 列出所有专业部门。
+     */
+    public List<DeptInfo> listAllDepts() {
+        return Collections.unmodifiableList(new ArrayList<>(DEPTS));
+    }
+
+    /**
+     * 按 ID 查找专业部门；找不到返回 null。
+     */
+    public DeptInfo findDept(Long id) {
+        return id == null ? null : DEPT_INDEX.get(id);
+    }
+
+    /**
      * 单位信息。
      */
     public record UnitInfo(Long id, String name, OpinionUnitType type) {
+    }
+
+    /**
+     * 专业部门信息。
+     */
+    public record DeptInfo(Long id, String name) {
     }
 }

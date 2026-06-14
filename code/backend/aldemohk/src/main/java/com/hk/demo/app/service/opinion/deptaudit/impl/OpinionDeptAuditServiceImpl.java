@@ -144,10 +144,6 @@ public class OpinionDeptAuditServiceImpl implements OpinionDeptAuditService {
         OpinionSurveyDO survey = requireSurvey(task.getSurveyId());
         ensureDeptFeedbackStatus(survey);
 
-        if (!OpinionDeptAuditStatus.PENDING.name().equals(task.getAuditStatus())) {
-            throw new BusinessException(ResultCode.OPINION_ILLEGAL_STATE);
-        }
-
         DeptAuditDetailVO vo = new DeptAuditDetailVO();
 
         DeptAuditDetailVO.TaskInfo taskInfo = new DeptAuditDetailVO.TaskInfo();

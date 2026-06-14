@@ -14,9 +14,15 @@
 
 - **发现时间**: 2026-06-14
 - **影响**: 所有列表查询接口返回空数据
-- **根因**: MyBatis-Plus 3.5.15 在 Spring Boot 4 下 `selectList`/`selectBatchIds`/`@Select` 均返回空记录。`selectById` 正常
-- **现状**: 已定位，未修复。FeedbackRepository 改用 JDBC 直连绕过
-- **推荐方案**: 升级 MyBatis-Plus 到 3.5.17+ 或降级 Spring Boot
+- **根因**: MyBatis-Plus 3.5.15 本身 Bug，与 Spring Boot 版本无关
+- **已尝试方案**:
+  - ❌ 升级 3.5.17（Maven Central 不存在）
+  - ❌ 升级 3.5.16（同版本 Bug，未修复）
+  - ❌ @InterceptorIgnore 注解（与拦截器无关，无效）
+  - ❌ 降级 Spring Boot 4→3.4.5（Bug 在 MP 本身，Boot 版本无关）
+- **临时规避**: FeedbackRepository、SurveyServiceImpl.summarize()、SummaryServiceImpl 改用 JDBC 直连
+- **推荐方案**: 等待 MyBatis-Plus 3.5.17+ 发布，或将列表查询统一迁移为 MyBatis XML / JdbcTemplate
+- **状态**: ⏳ 已定位，部分 JDBC 绕行
 
 ### Bug #3: 专业审核详情页 500
 

@@ -73,6 +73,7 @@ export interface DeptAuditItem {
   reason: string | null
   isAdopted: boolean | null
   adoptionRemark: string | null
+  remark: string | null
 }
 
 /** API-502 详情响应。 */

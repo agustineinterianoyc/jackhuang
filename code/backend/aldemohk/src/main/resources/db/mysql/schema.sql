@@ -172,6 +172,7 @@ CREATE TABLE IF NOT EXISTS `ad_opinion_feedback` (
     `item_id`         BIGINT UNSIGNED NOT NULL COMMENT '基层意见 ID',
     `is_adopted`      TINYINT(1)   NOT NULL DEFAULT 0 COMMENT '是否采纳：0/1',
     `adoption_remark` VARCHAR(260) DEFAULT NULL COMMENT '意见采纳说明（采纳时必填）',
+    `remark`         VARCHAR(500) DEFAULT NULL COMMENT '备注（非必填）',
     `created_at`      DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     `updated_at`      DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '最后更新时间',
     `deleted_flag`    TINYINT(1)   NOT NULL DEFAULT 0 COMMENT '逻辑删除',

@@ -215,6 +215,7 @@ public class OpinionDeptAuditServiceImpl implements OpinionDeptAuditService {
             fi.setItemId(fb.getItemId());
             fi.setIsAdopted(fb.getIsAdopted());
             fi.setAdoptionRemark(fb.getAdoptionRemark());
+            fi.setRemark(fb.getRemark());
 
             OpinionItemDO item = itemMap.get(fb.getItemId());
             if (item != null) {

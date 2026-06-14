@@ -23,7 +23,7 @@ public class OpinionFeedbackRepository {
 
     /** 用 JDBC 绕过 MyBatis-Plus selectList 兼容问题。 */
     public List<OpinionFeedbackDO> listByDeptTaskId(Long deptTaskId) {
-        String sql = "SELECT id, survey_id, dept_task_id, item_id, is_adopted, adoption_remark FROM ad_opinion_feedback WHERE dept_task_id = ? AND deleted_flag = 0";
+        String sql = "SELECT id, survey_id, dept_task_id, item_id, is_adopted, adoption_remark, remark FROM ad_opinion_feedback WHERE dept_task_id = ? AND deleted_flag = 0";
         return jdbc.query(sql, (rs, rowNum) -> {
             OpinionFeedbackDO f = new OpinionFeedbackDO();
             f.setId(rs.getLong("id"));
@@ -32,14 +32,22 @@ public class OpinionFeedbackRepository {
             f.setItemId(rs.getLong("item_id"));
             f.setIsAdopted(rs.getObject("is_adopted", Integer.class));
             f.setAdoptionRemark(rs.getString("adoption_remark"));
+            f.setRemark(rs.getString("remark"));
             return f;
         }, deptTaskId);
     }
 
-    /** 直接插入。 */
+    /** 使用 INSERT ON DUPLICATE KEY UPDATE 避免多次保存时的唯一键冲突。 */
     public void batchSaveOrUpdate(Long deptTaskId, List<OpinionFeedbackDO> feedbacks) {
+        String sql = "INSERT INTO ad_opinion_feedback (survey_id, dept_task_id, item_id, is_adopted, adoption_remark, remark, deleted_flag) VALUES (?, ?, ?, ?, ?, ?, 0) ON DUPLICATE KEY UPDATE is_adopted=VALUES(is_adopted), adoption_remark=VALUES(adoption_remark), remark=VALUES(remark)";
         for (OpinionFeedbackDO f : feedbacks) {
-            mapper.insert(f);
+            jdbc.update(sql,
+                f.getSurveyId() != null ? f.getSurveyId() : 0,
+                deptTaskId,
+                f.getItemId(),
+                f.getIsAdopted(),
+                f.getAdoptionRemark(),
+                f.getRemark());
         }
     }
 }

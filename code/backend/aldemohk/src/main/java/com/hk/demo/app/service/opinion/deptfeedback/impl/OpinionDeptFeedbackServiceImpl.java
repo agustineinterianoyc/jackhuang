@@ -208,6 +208,7 @@ public class OpinionDeptFeedbackServiceImpl implements OpinionDeptFeedbackServic
             if (fb != null) {
                 fi.setIsAdopted(fb.getIsAdopted());
                 fi.setAdoptionRemark(fb.getAdoptionRemark());
+            fi.setRemark(fb.getRemark());
             }
             itemVOs.add(fi);
         }
@@ -238,6 +239,7 @@ public class OpinionDeptFeedbackServiceImpl implements OpinionDeptFeedbackServic
             fb.setItemId(entry.getItemId());
             fb.setIsAdopted(entry.getIsAdopted());
             fb.setAdoptionRemark(entry.getAdoptionRemark());
+            fb.setRemark(entry.getRemark());
             feedbacks.add(fb);
         }
 

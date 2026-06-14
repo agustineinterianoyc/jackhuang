@@ -61,6 +61,7 @@ export interface DeptFeedbackItem {
   reason: string | null
   isAdopted: boolean | null
   adoptionRemark: string | null
+  remark: string | null
 }
 
 /** API-402 详情响应。 */
@@ -75,6 +76,7 @@ export interface DeptFeedbackSaveItem {
   itemId: number
   isAdopted: boolean
   adoptionRemark?: string | null
+  remark?: string | null
 }
 
 /** API-403 保存入参。 */

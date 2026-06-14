@@ -32,6 +32,8 @@ public class DeptFeedbackSaveRequest {
 
         private String adoptionRemark;
 
+        private String remark;
+
         public Long getItemId() {
             return itemId;
         }
@@ -52,8 +54,16 @@ public class DeptFeedbackSaveRequest {
             return adoptionRemark;
         }
 
-        public void setAdoptionRemark(String adoptionRemark) {
-            this.adoptionRemark = adoptionRemark;
-        }
+    public void setAdoptionRemark(String adoptionRemark) {
+        this.adoptionRemark = adoptionRemark;
     }
+
+    public String getRemark() {
+        return remark;
+    }
+
+    public void setRemark(String remark) {
+        this.remark = remark;
+    }
+}
 }

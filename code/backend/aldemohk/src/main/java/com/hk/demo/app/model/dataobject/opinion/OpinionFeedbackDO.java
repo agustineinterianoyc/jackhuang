@@ -26,6 +26,9 @@ public class OpinionFeedbackDO extends AuditBaseDO {
     @TableField("adoption_remark")
     private String adoptionRemark;
 
+    @TableField("remark")
+    private String remark;
+
     @TableLogic
     @TableField("deleted_flag")
     private Integer deletedFlag;
@@ -68,6 +71,14 @@ public class OpinionFeedbackDO extends AuditBaseDO {
 
     public void setAdoptionRemark(String adoptionRemark) {
         this.adoptionRemark = adoptionRemark;
+    }
+
+    public String getRemark() {
+        return remark;
+    }
+
+    public void setRemark(String remark) {
+        this.remark = remark;
     }
 
     public Integer getDeletedFlag() {

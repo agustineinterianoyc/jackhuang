@@ -4,7 +4,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 /**
- * 濠电偞鍨堕幐濠氬箰妞嬪海绠旈柣鏃囥€€閸嬫捇宕楁径濠傗拤闂佺粯顨呯壕顓㈠箯閻樼粯鏅滈柦妯侯槸婢瑰牓姊洪崨濠勭畵缂佸顕懞閬嶅蓟閵夛附娅栭梺?5 闂佽崵鍠愰悷銉ノ涘鍫稏婵°倕鎳忛弲顒€顭跨捄铏瑰闁? */
+ * 濠电姷鏁搁崑鐐哄垂閸洖绠板┑鐘宠壘缁犳澘顪冪€ｎ亝鎹ｇ紒鐘虫閺岋綁寮崶銉㈠亾閳ь剟鏌涚€ｎ偅宕岀€规洘顨嗗鍕節閸屾瀚熼梻鍌欒兌缁垶銆冮崨顖氼棜妞ゆ挶鍨圭粻顖炴煟濡偐甯涢柡鍛矒閺岋箑螣娓氼垱笑婵犮垻鎳撻悧鎾愁潖濞差亜宸濆┑鐘插閻ｇ數绱撴担鍓叉Ц妞ゆ洦鍙冮幊鐐烘焼瀹ュ懓鎽曢梺闈涱檧闂勫嫬鈻嶉弽顓熲拺?5 闂傚倷娴囧畷鐢稿窗閹扮増鍋￠柕澶堝剻濞戞﹩鐓ラ柛顐墰缁嬪繐鈹戞幊閸婃洟骞婅箛娑樼柧妞ゆ巻鍋撴い顓℃硶閹瑰嫰鎼归悷閭︽殼闂? */
 public class DeptAuditDetailVO {
 
     private TaskInfo task;
@@ -45,7 +45,7 @@ public class DeptAuditDetailVO {
     }
 
     /**
-     * 濠电偛顕慨楣冾敋瑜庨幈銊╂偄婵傚鍋ラ梺绋挎湰缁诲秴煤閿濆惓搴ㄥ炊閿濆懎鈷夋繛瀵稿帶閹虫ɑ淇?     */
+     * 濠电姷鏁搁崑娑㈩敋椤撶喐鍙忓Δ锝呭枤閺佸鎲告惔銊ョ疄闁靛ň鏅滈崑鍕攽閸屾凹妲归柛瀣ㄥ劦濮婅櫣绮欓幐搴㈡嫳缂備浇顕х粔瀵稿弲闂佹寧绻傞幆鎾存償閵娿儳鍊為梺鎸庣箓閹冲酣鍩涙径瀣閻庣數顭堢敮鍫曟煙閾忣倖鎴炵┍?     */
     public static class TaskInfo {
         private Long id;
         private Long surveyId;
@@ -167,7 +167,7 @@ public class DeptAuditDetailVO {
     }
 
     /**
-     * 婵犵妲呴崹顏堝焵椤掑啯鐝柛瀣ㄥ劚鑿愰柛銉到婢ф彃霉閻撳孩鍤囬柡浣哥Ч瀹曠厧鈹戦崶褍澹嶉梻鍌氬€哥€氼剛鈧凹浜滈埢搴ㄥ閵堝棙娅栨繝銏ｆ硾閻楀啴宕?     */
+     * 婵犵數濮烽。钘壩ｉ崨鏉戝瀭妞ゅ繐鐗嗛悞鍨亜閹烘垵鏆為柣婵愪邯閺屾稓鈧絻鍔岄崝姘舵嚕閹扮増鐓曢柕澶樺灣閸掓澘顭胯瑜板啴婀侀梺缁樻尭鐎涒晠宕甸崶顒佺厸濞达絽鎽滄晥閻庤娲滈崢褔鍩為幋锕€鐐婄憸宥嗙珶瀹ュ鈷掗柛灞捐壘閳ь剙鎽滈埀顒佸嚬閸撴盯鍩€椤掍礁鍤ù婊勭矒閸┿垺鎯旈妸銉綂闂侀潧鐗嗗Λ娆忊枍閺嶃劎绡€闁靛骏绲剧涵楣冩煟濡も偓閸熸潙鐣?     */
     public static class ModuleInfo {
         private String moduleCode;
         private String moduleName;
@@ -199,7 +199,7 @@ public class DeptAuditDetailVO {
     }
 
     /**
-     * 闂傚倸鍊哥€氼剛鈧凹浜滈埢搴ㄥ閿涘嫧鏀抽梺鏂ユ櫅閸熲晝妲愰弽顓熺厪?     */
+     * 闂傚倸鍊搁崐鎼佸磹閸濄儮鍋撳鐓庡闁逞屽墯閸戣绂嶅鍫濈厺閹兼番鍔岄～鍛存煥濞戞ê顏ら柡鈧幎鑺モ拺闁哄倶鍎插▍鍛存煕閻斿弶娅囨俊鍙夊姍瀵粙顢橀悢鍝勫妇?     */
     public static class AttachmentInfo {
         private String fileId;
         private String fileName;
@@ -222,7 +222,7 @@ public class DeptAuditDetailVO {
     }
 
     /**
-     * 闂備礁鎲￠悷銉х矓瑜版帇鈧懘顢橀姀鐘电杸闂婎偄娲﹂崙鐟邦焽瀹€鍕仩婵炴垶顭囬悞璺ㄧ磼鏉堛劎鎳囩€规洏鍎甸、鏇㈠閵忕姵鏆忛梺璇茬箳閸嬫盯宕愯ぐ鎺戠闁规鍠楅崰鍡椕归敐鍥剁劸闁哄們鍥ㄧ厸?+ 濠电偞鍨堕幐濠氬箰妞嬪海绠旈柣鏃傚帶閻鈧箍鍎遍ˇ钘壝?+ 闂佽楠搁崢婊堝礈濠靛鍋嬮柧蹇ｅ亞閳瑰秹鏌嶉埡浣告殨缂佽鲸鐗犻弻銊モ槈濮楀棙肖闂?     */
+     * 闂傚倸鍊风粈渚€骞夐敓鐘冲仭闁靛／鍛厠閻熸粎澧楃敮鍥焵椤掆偓閹虫﹢銆佸鈧慨鈧柣妯兼暩閺夋悂姊绘繝搴′簻婵炶绠撳畷娆撴偡闁妇鍔烽悗鍏夊亾闁告洦鍓欐禒鈺佲攽閻愭潙鐏︽い顓炴喘閹偟鎹勯妸褏锛滈柡澶婄墑閸斿酣骞婇崶鈹惧亾鐟欏嫭纾搁柛搴ｆ暬閵嗕線寮撮姀鐙€娼婇梺闈涚箳婵敻寮宠箛娑欌拺閻犲洩灏欑粻鎶芥煕鐎ｎ偆娲寸€规洘鍔橀妵鎰板箳閹寸媭妲堕梻浣筋潐椤旀牠宕板Δ鍛獥闁糕剝顦鸿ぐ鎺撴櫜闁搞儱澧庨崝鎼佹⒑閸濆嫬鈧垿宕堕妸褍骞?+ 濠电姷鏁搁崑鐐哄垂閸洖绠板┑鐘宠壘缁犳澘顪冪€ｎ亝鎹ｇ紒鐘虫閺岋綁寮崒姘粯闂佹椿鍘介〃鍫ュ焵椤掆偓缁犲秹宕曢柆宓ュ洭鎸婃竟?+ 闂傚倷娴囬褎顨ラ幖浣稿偍婵犲﹤鐗嗙粈鍫熺節闂堟侗鍎愰柛瀣儔閺屟嗙疀閿濆懍绨介梺宕囨嚀缁夊綊寮诲澶婄厸濞达絽鎲″▓銊х磽娴ｄ粙鍝洪柣妤冨█瀵濡搁妷銏☆潔濠殿喗顨呭Λ娆掑€撮梻?     */
     public static class FeedbackItemInfo {
         private Long itemId;
         private String moduleCode;
@@ -235,6 +235,7 @@ public class DeptAuditDetailVO {
         private String reason;
         private Integer isAdopted;
         private String adoptionRemark;
+        private String remark;
 
         public Long getItemId() {
             return itemId;
@@ -316,7 +317,7 @@ public class DeptAuditDetailVO {
             this.isAdopted = isAdopted;
         }
 
-        public String getAdoptionRemark() {
+        public String getRemark() { return remark; } public void setRemark(String remark) { this.remark = remark; } public String getAdoptionRemark() {
             return adoptionRemark;
         }
 
@@ -326,7 +327,7 @@ public class DeptAuditDetailVO {
     }
 
     /**
-     * 闂佽楠搁崢婊堝礈濠靛鍋嬮柟鎯版缁秹鏌曟径鍫濆姢缂佺姾娉涜彁闁搞儻绲芥晶鎻捗归悡搴㈠殗濠?     */
+     * 闂傚倷娴囬褎顨ラ幖浣稿偍婵犲﹤鐗嗙粈鍫熺節闂堟侗鍎愰柛瀣儔閺岀喖骞嗛悧鍫缂備緡鍋勭粔褰掑蓟閺囩喎绶為柛顐ｇ箓婵垻绱撴担鍝勑繛澶嬬瑜颁線姊洪幖鐐插姷缂佽尪濮ら弲鍫曞箵閹规缍婇幃鈩冩償閵忕姵鐣诲┑?     */
     public static class AuditLogInfo {
         private Long id;
         private String action;

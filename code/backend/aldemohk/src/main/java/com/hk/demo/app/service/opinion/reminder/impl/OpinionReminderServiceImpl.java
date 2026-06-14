@@ -17,6 +17,7 @@ import com.hk.demo.app.model.request.opinion.reminder.SingleReminderRequest;
 import com.hk.demo.app.model.response.opinion.reminder.BatchReminderVO;
 import com.hk.demo.app.service.opinion.log.OpinionActionLogger;
 import com.hk.demo.app.service.opinion.mock.OpinionMockMasterDataProvider;
+import com.hk.demo.app.service.opinion.notification.NotificationService;
 import com.hk.demo.app.service.opinion.reminder.OpinionReminderService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -46,18 +47,21 @@ public class OpinionReminderServiceImpl implements OpinionReminderService {
     private final OpinionReminderLogMapper reminderLogMapper;
     private final OpinionActionLogger actionLogger;
     private final OpinionMockMasterDataProvider masterData;
+    private final NotificationService notificationService;
 
     @Autowired
     public OpinionReminderServiceImpl(OpinionUnitTaskMapper unitTaskMapper,
                                       OpinionDeptTaskMapper deptTaskMapper,
                                       OpinionReminderLogMapper reminderLogMapper,
                                       OpinionActionLogger actionLogger,
-                                      OpinionMockMasterDataProvider masterData) {
+                                      OpinionMockMasterDataProvider masterData,
+                                      NotificationService notificationService) {
         this.unitTaskMapper = unitTaskMapper;
         this.deptTaskMapper = deptTaskMapper;
         this.reminderLogMapper = reminderLogMapper;
         this.actionLogger = actionLogger;
         this.masterData = masterData;
+        this.notificationService = notificationService;
     }
 
     // ===== API-603 一键提醒 =====
@@ -166,5 +170,10 @@ public class OpinionReminderServiceImpl implements OpinionReminderService {
 
         log.info("[opinion] remind sent (stub): surveyId={}, targetType={}, targetId={}, mode={}",
             surveyId, targetType, targetId, mode.name());
+
+        // 发送通知
+        String title = mode == OpinionReminderMode.BATCH ? "批量提醒" : "提交提醒";
+        notificationService.send(targetType, targetId, title,
+            String.format("请及时完成征集任务(#%d)的提交工作", surveyId));
     }
 }

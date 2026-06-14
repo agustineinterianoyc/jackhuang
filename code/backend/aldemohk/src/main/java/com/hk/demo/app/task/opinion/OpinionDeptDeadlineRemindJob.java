@@ -8,6 +8,7 @@ import com.hk.demo.app.model.dataobject.opinion.OpinionDeptTaskDO;
 import com.hk.demo.app.model.dataobject.opinion.OpinionSurveyDO;
 import com.hk.demo.app.mapper.opinion.OpinionSurveyMapper;
 import com.hk.demo.app.service.opinion.log.OpinionActionLogger;
+import com.hk.demo.app.service.opinion.notification.NotificationService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -33,13 +34,16 @@ public class OpinionDeptDeadlineRemindJob {
     private final OpinionDeptTaskMapper deptTaskMapper;
     private final OpinionSurveyMapper surveyMapper;
     private final OpinionActionLogger actionLogger;
+    private final NotificationService notificationService;
 
     public OpinionDeptDeadlineRemindJob(OpinionDeptTaskMapper deptTaskMapper,
                                         OpinionSurveyMapper surveyMapper,
-                                        OpinionActionLogger actionLogger) {
+                                        OpinionActionLogger actionLogger,
+                                        NotificationService notificationService) {
         this.deptTaskMapper = deptTaskMapper;
         this.surveyMapper = surveyMapper;
         this.actionLogger = actionLogger;
+        this.notificationService = notificationService;
     }
 
     /**
@@ -86,6 +90,7 @@ public class OpinionDeptDeadlineRemindJob {
 
             actionLogger.log(task.getSurveyId(), OpinionActionLogAction.REMIND_BATCH,
                 null, null, "SYSTEM", null, summary);
+            notificationService.send("DEPT", task.getDepartmentId(), "截止提醒", summary);
             count++;
         }
 

@@ -111,6 +111,10 @@ function goBack() {
   router.push({ name: 'opinion-unit-audit-list' })
 }
 
+function handleExport() {
+  window.open(`/api/opinion/unit-audit/${taskId.value}/export`)
+}
+
 onMounted(load)
 </script>
 
@@ -122,6 +126,7 @@ onMounted(load)
         返回列表
       </a-button>
       <h2>基层单位意见征集审核</h2>
+      <a-button size="small" @click="handleExport">导出CSV</a-button>
     </header>
 
     <a-spin :loading="loading" tip="加载中">

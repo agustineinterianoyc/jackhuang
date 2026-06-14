@@ -4,6 +4,7 @@ import com.hk.demo.app.model.request.opinion.survey.SurveyListRequest;
 import com.hk.demo.app.model.request.opinion.survey.SurveySaveRequest;
 import com.hk.demo.app.model.response.opinion.survey.SurveyDetailVO;
 import com.hk.demo.app.model.response.opinion.survey.SurveyListItemVO;
+import com.hk.demo.app.model.response.opinion.survey.SurveyPublishVO;
 import com.hk.demo.app.model.response.opinion.survey.SurveyStartVO;
 import com.hk.demo.app.model.response.opinion.survey.SurveyStatusVO;
 import com.hk.demo.data.pagination.PageResult;
@@ -68,4 +69,14 @@ public interface OpinionSurveyService {
      * API-111 绩效退回专业（R01 在 DEPT_FEEDBACK 时退回单个部门）。
      */
     SurveyStatusVO opsRejectDept(Long surveyId, Long deptTaskId, String rejectReason);
+
+    /**
+     * API-106 汇总（自动触发兜底）：检查全部专业审核通过后推进到 DONE，并初始化汇总采纳行。
+     */
+    SurveyStatusVO summarize(Long surveyId);
+
+    /**
+     * API-107 发布：DONE → PUBLISHED，记录发布时间。
+     */
+    SurveyPublishVO publish(Long surveyId);
 }

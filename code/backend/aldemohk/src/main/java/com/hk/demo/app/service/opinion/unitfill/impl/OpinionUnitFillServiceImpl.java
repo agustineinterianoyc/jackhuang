@@ -30,15 +30,20 @@ import com.hk.demo.app.service.opinion.state.OpinionStateMachine;
 import com.hk.demo.app.service.opinion.unitfill.OpinionUnitFillService;
 import com.hk.demo.core.exception.BusinessException;
 import com.hk.demo.data.pagination.PageResult;
+import jakarta.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
+import java.io.PrintWriter;
+import java.sql.ResultSet;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -66,6 +71,7 @@ public class OpinionUnitFillServiceImpl implements OpinionUnitFillService {
     private final OpinionStateMachine stateMachine;
     private final OpinionActionLogger actionLogger;
     private final OpinionMockMasterDataProvider masterData;
+    private final JdbcTemplate jdbc;
 
     @Autowired
     public OpinionUnitFillServiceImpl(OpinionUnitTaskMapper unitTaskMapper,
@@ -75,7 +81,8 @@ public class OpinionUnitFillServiceImpl implements OpinionUnitFillService {
                                       OpinionAttachmentMapper attachmentMapper,
                                       OpinionStateMachine stateMachine,
                                       OpinionActionLogger actionLogger,
-                                      OpinionMockMasterDataProvider masterData) {
+                                      OpinionMockMasterDataProvider masterData,
+                                      JdbcTemplate jdbc) {
         this.unitTaskMapper = unitTaskMapper;
         this.itemMapper = itemMapper;
         this.surveyMapper = surveyMapper;
@@ -84,6 +91,7 @@ public class OpinionUnitFillServiceImpl implements OpinionUnitFillService {
         this.stateMachine = stateMachine;
         this.actionLogger = actionLogger;
         this.masterData = masterData;
+        this.jdbc = jdbc;
     }
 
     // ===== API-201 列表 =====
@@ -281,6 +289,47 @@ public class OpinionUnitFillServiceImpl implements OpinionUnitFillService {
         return vo;
     }
 
+    // ===== API-801 导出 =====
+    @Override
+    public void exportCsv(Long taskId, HttpServletResponse response) {
+        OpinionUnitTaskDO task = requireTask(taskId);
+
+        String sql = "SELECT i.module_code, i.indicator_category, i.indicator_name, i.factor_name," +
+            " i.extra_field, i.opinion_category, i.opinion_content, i.reason" +
+            " FROM ad_opinion_item i" +
+            " WHERE i.unit_task_id = ? AND i.deleted_flag = 0" +
+            " ORDER BY i.display_order";
+
+        try {
+            response.setContentType("text/csv;charset=UTF-8");
+            response.setHeader("Content-Disposition",
+                "attachment;filename=unit_fill_" + taskId + "_" +
+                LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss")) + ".csv");
+            response.setCharacterEncoding("UTF-8");
+
+            PrintWriter writer = response.getWriter();
+            writer.write("\uFEFF");
+            writer.println("模块编码,指标大类,指标名称,要素名称,补充字段,意见分类,意见内容,理由");
+
+            jdbc.query(sql, (ResultSet rs) -> {
+                writer.print(csvEscape(rs.getString("module_code"))); writer.print(",");
+                writer.print(csvEscape(rs.getString("indicator_category"))); writer.print(",");
+                writer.print(csvEscape(rs.getString("indicator_name"))); writer.print(",");
+                writer.print(csvEscape(rs.getString("factor_name"))); writer.print(",");
+                writer.print(csvEscape(rs.getString("extra_field"))); writer.print(",");
+                writer.print(csvEscape(rs.getString("opinion_category"))); writer.print(",");
+                writer.print(csvEscape(rs.getString("opinion_content"))); writer.print(",");
+                writer.println(csvEscape(rs.getString("reason")));
+            }, taskId);
+
+            writer.flush();
+            log.info("[opinion] unit fill CSV exported: taskId={}", taskId);
+        } catch (Exception e) {
+            log.error("[opinion] unit fill CSV export failed: taskId={}", taskId, e);
+            throw new RuntimeException("导出失败", e);
+        }
+    }
+
     // ====================================================================
     // ==================== Helper ========================================
     // ====================================================================
@@ -415,5 +464,13 @@ public class OpinionUnitFillServiceImpl implements OpinionUnitFillService {
     private String surveyStatusText(String status) {
         OpinionMainStatus s = OpinionMainStatus.fromName(status);
         return s == null ? status : s.getText();
+    }
+
+    private String csvEscape(String value) {
+        if (value == null) return "";
+        if (value.contains(",") || value.contains("\"") || value.contains("\n")) {
+            return "\"" + value.replace("\"", "\"\"") + "\"";
+        }
+        return value;
     }
 }

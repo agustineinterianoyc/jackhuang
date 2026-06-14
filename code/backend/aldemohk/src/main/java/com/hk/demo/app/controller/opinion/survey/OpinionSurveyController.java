@@ -5,6 +5,7 @@ import com.hk.demo.app.model.request.opinion.survey.SurveyListRequest;
 import com.hk.demo.app.model.request.opinion.survey.SurveySaveRequest;
 import com.hk.demo.app.model.response.opinion.survey.SurveyDetailVO;
 import com.hk.demo.app.model.response.opinion.survey.SurveyListItemVO;
+import com.hk.demo.app.model.response.opinion.survey.SurveyPublishVO;
 import com.hk.demo.app.model.response.opinion.survey.SurveyStartVO;
 import com.hk.demo.app.model.response.opinion.survey.SurveyStatusVO;
 import com.hk.demo.app.service.opinion.survey.OpinionSurveyService;
@@ -117,5 +118,21 @@ public class OpinionSurveyController {
         String rejectReason = body.getOrDefault("rejectReason", "");
         return ApiResponseFactory.success(service.opsRejectDept(id, body.get("deptTaskId") != null ?
             Long.parseLong(body.get("deptTaskId")) : null, rejectReason));
+    }
+
+    /**
+     * API-106 汇总（推进 DONE + 初始化汇总采纳行）。
+     */
+    @PostMapping("/{id}/summarize")
+    public ApiResponse<SurveyStatusVO> summarize(@PathVariable("id") Long id) {
+        return ApiResponseFactory.success(service.summarize(id));
+    }
+
+    /**
+     * API-107 发布（DONE → PUBLISHED）。
+     */
+    @PostMapping("/{id}/publish")
+    public ApiResponse<SurveyPublishVO> publish(@PathVariable("id") Long id) {
+        return ApiResponseFactory.success(service.publish(id));
     }
 }

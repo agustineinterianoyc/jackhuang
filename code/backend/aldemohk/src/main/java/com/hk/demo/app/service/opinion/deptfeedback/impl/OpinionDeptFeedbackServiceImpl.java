@@ -32,15 +32,20 @@ import com.hk.demo.app.service.opinion.mock.OpinionMockMasterDataProvider;
 import com.hk.demo.app.service.opinion.mock.OpinionMockMasterDataProvider.DeptInfo;
 import com.hk.demo.core.exception.BusinessException;
 import com.hk.demo.data.pagination.PageResult;
+import jakarta.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
+import java.io.PrintWriter;
+import java.sql.ResultSet;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -68,6 +73,7 @@ public class OpinionDeptFeedbackServiceImpl implements OpinionDeptFeedbackServic
     private final OpinionUnitTaskMapper unitTaskMapper;
     private final OpinionActionLogger actionLogger;
     private final OpinionMockMasterDataProvider masterData;
+    private final JdbcTemplate jdbc;
 
     @Autowired
     public OpinionDeptFeedbackServiceImpl(OpinionDeptTaskRepository deptTaskRepo,
@@ -78,7 +84,8 @@ public class OpinionDeptFeedbackServiceImpl implements OpinionDeptFeedbackServic
                                           OpinionAttachmentMapper attachmentMapper,
                                           OpinionUnitTaskMapper unitTaskMapper,
                                           OpinionActionLogger actionLogger,
-                                          OpinionMockMasterDataProvider masterData) {
+                                          OpinionMockMasterDataProvider masterData,
+                                          JdbcTemplate jdbc) {
         this.deptTaskRepo = deptTaskRepo;
         this.feedbackRepo = feedbackRepo;
         this.itemMapper = itemMapper;
@@ -88,6 +95,7 @@ public class OpinionDeptFeedbackServiceImpl implements OpinionDeptFeedbackServic
         this.unitTaskMapper = unitTaskMapper;
         this.actionLogger = actionLogger;
         this.masterData = masterData;
+        this.jdbc = jdbc;
     }
 
     // ===== API-401 列表 =====
@@ -293,6 +301,54 @@ public class OpinionDeptFeedbackServiceImpl implements OpinionDeptFeedbackServic
         return vo;
     }
 
+    // ===== API-802 导出 =====
+    @Override
+    public void exportCsv(Long taskId, HttpServletResponse response) {
+        OpinionDeptTaskDO task = requireDeptTask(taskId);
+
+        String sql = "SELECT i.module_code, i.indicator_category, i.indicator_name, i.factor_name," +
+            " i.opinion_category, i.opinion_content, i.reason," +
+            " ut.unit_name," +
+            " f.is_adopted, f.adoption_remark, f.remark" +
+            " FROM ad_opinion_item i" +
+            " LEFT JOIN ad_opinion_unit_task ut ON ut.id = i.unit_task_id AND ut.deleted_flag = 0" +
+            " LEFT JOIN ad_opinion_feedback f ON f.item_id = i.id AND f.dept_task_id = ? AND f.deleted_flag = 0" +
+            " WHERE i.survey_id = ? AND i.module_code = ? AND i.deleted_flag = 0" +
+            " ORDER BY i.display_order";
+
+        try {
+            response.setContentType("text/csv;charset=UTF-8");
+            response.setHeader("Content-Disposition",
+                "attachment;filename=dept_feedback_" + taskId + "_" +
+                LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss")) + ".csv");
+            response.setCharacterEncoding("UTF-8");
+
+            PrintWriter writer = response.getWriter();
+            writer.write("\uFEFF");
+            writer.println("模块编码,指标大类,指标名称,要素名称,意见分类,意见内容,理由,基层单位,是否采纳,采纳说明,备注");
+
+            jdbc.query(sql, (ResultSet rs) -> {
+                writer.print(csvEscape(rs.getString("module_code"))); writer.print(",");
+                writer.print(csvEscape(rs.getString("indicator_category"))); writer.print(",");
+                writer.print(csvEscape(rs.getString("indicator_name"))); writer.print(",");
+                writer.print(csvEscape(rs.getString("factor_name"))); writer.print(",");
+                writer.print(csvEscape(rs.getString("opinion_category"))); writer.print(",");
+                writer.print(csvEscape(rs.getString("opinion_content"))); writer.print(",");
+                writer.print(csvEscape(rs.getString("reason"))); writer.print(",");
+                writer.print(csvEscape(rs.getString("unit_name"))); writer.print(",");
+                writer.print(rs.getObject("is_adopted") != null ? rs.getInt("is_adopted") : ""); writer.print(",");
+                writer.print(csvEscape(rs.getString("adoption_remark"))); writer.print(",");
+                writer.println(csvEscape(rs.getString("remark")));
+            }, taskId, task.getSurveyId(), task.getModuleCode());
+
+            writer.flush();
+            log.info("[opinion] dept feedback CSV exported: taskId={}", taskId);
+        } catch (Exception e) {
+            log.error("[opinion] dept feedback CSV export failed: taskId={}", taskId, e);
+            throw new RuntimeException("导出失败", e);
+        }
+    }
+
     // ====================================================================
     // ==================== Helper ========================================
     // ====================================================================
@@ -413,5 +469,13 @@ public class OpinionDeptFeedbackServiceImpl implements OpinionDeptFeedbackServic
         com.hk.demo.api.enums.opinion.OpinionModuleCode mc =
             com.hk.demo.api.enums.opinion.OpinionModuleCode.fromName(moduleCode);
         return mc == null ? moduleCode : mc.getText();
+    }
+
+    private String csvEscape(String value) {
+        if (value == null) return "";
+        if (value.contains(",") || value.contains("\"") || value.contains("\n")) {
+            return "\"" + value.replace("\"", "\"\"") + "\"";
+        }
+        return value;
     }
 }

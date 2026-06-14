@@ -130,6 +130,10 @@ function goBack() {
   router.push({ name: 'opinion-dept-feedback-list' })
 }
 
+function handleExport() {
+  window.open(`/api/opinion/dept-feedback/${taskId.value}/export`)
+}
+
 function submitStatusColor(status: string): string {
   return OPINION_DEPT_SUBMIT_STATUS_COLOR[status as keyof typeof OPINION_DEPT_SUBMIT_STATUS_COLOR] ?? 'gray'
 }
@@ -167,6 +171,7 @@ onMounted(load)
         返回列表
       </a-button>
       <h2>专业部门反馈</h2>
+      <a-button size="small" @click="handleExport">导出CSV</a-button>
     </header>
 
     <a-spin :loading="loading" tip="加载中">

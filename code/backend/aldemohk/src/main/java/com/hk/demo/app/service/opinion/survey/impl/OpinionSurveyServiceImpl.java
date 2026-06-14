@@ -13,6 +13,7 @@ import com.hk.demo.app.mapper.opinion.OpinionAttachmentMapper;
 import com.hk.demo.app.mapper.opinion.OpinionDeptTaskMapper;
 import com.hk.demo.app.mapper.opinion.OpinionFeedbackMapper;
 import com.hk.demo.app.mapper.opinion.OpinionItemMapper;
+import com.hk.demo.app.mapper.opinion.OpinionSummaryItemMapper;
 import com.hk.demo.app.mapper.opinion.OpinionSurveyMapper;
 import com.hk.demo.app.mapper.opinion.OpinionSurveyModuleMapper;
 import com.hk.demo.app.mapper.opinion.OpinionSurveyTargetMapper;
@@ -22,6 +23,7 @@ import com.hk.demo.app.model.dataobject.opinion.OpinionAttachmentDO;
 import com.hk.demo.app.model.dataobject.opinion.OpinionDeptTaskDO;
 import com.hk.demo.app.model.dataobject.opinion.OpinionFeedbackDO;
 import com.hk.demo.app.model.dataobject.opinion.OpinionItemDO;
+import com.hk.demo.app.model.dataobject.opinion.OpinionSummaryItemDO;
 import com.hk.demo.app.model.dataobject.opinion.OpinionSurveyDO;
 import com.hk.demo.app.model.dataobject.opinion.OpinionSurveyModuleDO;
 import com.hk.demo.app.model.dataobject.opinion.OpinionSurveyTargetDO;
@@ -32,6 +34,7 @@ import com.hk.demo.app.model.request.opinion.survey.SurveyListRequest;
 import com.hk.demo.app.model.request.opinion.survey.SurveySaveRequest;
 import com.hk.demo.app.model.response.opinion.survey.SurveyDetailVO;
 import com.hk.demo.app.model.response.opinion.survey.SurveyListItemVO;
+import com.hk.demo.app.model.response.opinion.survey.SurveyPublishVO;
 import com.hk.demo.app.model.response.opinion.survey.SurveyStartVO;
 import com.hk.demo.app.model.response.opinion.survey.SurveyStatusVO;
 import com.hk.demo.app.service.opinion.log.OpinionActionLogger;
@@ -45,6 +48,7 @@ import com.hk.demo.data.pagination.PageResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
@@ -80,10 +84,12 @@ public class OpinionSurveyServiceImpl implements OpinionSurveyService {
     private final OpinionUnitAuditLogMapper unitAuditLogMapper;
     private final OpinionDeptTaskMapper deptTaskMapper;
     private final OpinionFeedbackMapper feedbackMapper;
+    private final OpinionSummaryItemMapper summaryItemMapper;
     private final OpinionItemMapper itemMapper;
     private final OpinionStateMachine stateMachine;
     private final OpinionActionLogger actionLogger;
     private final OpinionMockMasterDataProvider masterData;
+    private final JdbcTemplate jdbc;
 
     @Autowired
     public OpinionSurveyServiceImpl(OpinionSurveyMapper surveyMapper,
@@ -94,10 +100,12 @@ public class OpinionSurveyServiceImpl implements OpinionSurveyService {
                                     OpinionUnitAuditLogMapper unitAuditLogMapper,
                                     OpinionDeptTaskMapper deptTaskMapper,
                                     OpinionFeedbackMapper feedbackMapper,
+                                    OpinionSummaryItemMapper summaryItemMapper,
                                     OpinionItemMapper itemMapper,
                                     OpinionStateMachine stateMachine,
                                     OpinionActionLogger actionLogger,
-                                    OpinionMockMasterDataProvider masterData) {
+                                    OpinionMockMasterDataProvider masterData,
+                                    JdbcTemplate jdbc) {
         this.surveyMapper = surveyMapper;
         this.moduleMapper = moduleMapper;
         this.targetMapper = targetMapper;
@@ -106,10 +114,12 @@ public class OpinionSurveyServiceImpl implements OpinionSurveyService {
         this.unitAuditLogMapper = unitAuditLogMapper;
         this.deptTaskMapper = deptTaskMapper;
         this.feedbackMapper = feedbackMapper;
+        this.summaryItemMapper = summaryItemMapper;
         this.itemMapper = itemMapper;
         this.stateMachine = stateMachine;
         this.actionLogger = actionLogger;
         this.masterData = masterData;
+        this.jdbc = jdbc;
     }
 
     // ===== API-101 创建 =====
@@ -491,6 +501,88 @@ public class OpinionSurveyServiceImpl implements OpinionSurveyService {
         }
         vo.setTargets(targetVOs);
 
+        return vo;
+    }
+
+    // ===== API-106 汇总 =====
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public SurveyStatusVO summarize(Long surveyId) {
+        OpinionSurveyDO survey = requireExisting(surveyId);
+        OpinionMainStatus from = OpinionMainStatus.fromName(survey.getStatus());
+        OpinionMainStatus to = OpinionMainStatus.DONE;
+        stateMachine.assertTransition(from, to);
+
+        // 用 JDBC 绕过 MyBatis-Plus selectList 兼容问题
+        String checkSql = "SELECT COUNT(*) as total, SUM(CASE WHEN audit_status='PASS' THEN 1 ELSE 0 END) as passed FROM ad_opinion_dept_task WHERE survey_id = ? AND deleted_flag = 0";
+        Map<String, Object> check = jdbc.queryForMap(checkSql, surveyId);
+        long total = ((Number) check.get("total")).longValue();
+        long passed = ((Number) check.get("passed")).longValue();
+        if (total == 0 || passed != total) {
+            throw new BusinessException(ResultCode.OPINION_ILLEGAL_STATE.getCode(),
+                "存在尚未审核通过的专业任务，不可汇总");
+        }
+
+        Long actor = masterData.currentUserId();
+        LocalDateTime now = LocalDateTime.now();
+
+        survey.setStatus(to.name());
+        survey.setUpdatedBy(actor);
+        surveyMapper.updateById(survey);
+
+        // 先逻辑删除旧汇总行，再初始化
+        jdbc.update("UPDATE ad_opinion_summary_item SET deleted_flag = 1 WHERE survey_id = ? AND deleted_flag = 0",
+            surveyId);
+
+        String insertSql = "INSERT INTO ad_opinion_summary_item (survey_id, feedback_id, item_id, final_is_adopted, final_adoption_remark, adjusted_content, deleted_flag) VALUES (?, ?, ?, 0, NULL, NULL, 0) ON DUPLICATE KEY UPDATE deleted_flag = 0";
+
+        int created = 0;
+        // 用 JDBC 查询反馈 ID
+        List<Map<String, Object>> feedbackRows = jdbc.queryForList(
+            "SELECT id, item_id FROM ad_opinion_feedback WHERE survey_id = ? AND deleted_flag = 0", surveyId);
+        for (Map<String, Object> row : feedbackRows) {
+            jdbc.update(insertSql, surveyId, row.get("id"), row.get("item_id"));
+            created++;
+        }
+
+        actionLogger.log(surveyId, OpinionActionLogAction.SUMMARIZE,
+            from.name(), to.name(), ACTOR_ROLE_R01, actor,
+            "summary items initialized: " + created);
+
+        log.info("[opinion] survey summarized: id={}, summaryItems={}", surveyId, created);
+        return toStatusVO(survey);
+    }
+
+    // ===== API-107 发布 =====
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public SurveyPublishVO publish(Long surveyId) {
+        OpinionSurveyDO survey = requireExisting(surveyId);
+
+        OpinionMainStatus from = OpinionMainStatus.fromName(survey.getStatus());
+        OpinionMainStatus to = OpinionMainStatus.PUBLISHED;
+        stateMachine.assertCurrent(from, OpinionMainStatus.DONE);
+        stateMachine.assertTransition(from, to);
+
+        Long actor = masterData.currentUserId();
+        LocalDateTime now = LocalDateTime.now();
+
+        survey.setStatus(to.name());
+        survey.setPublishAt(now);
+        survey.setUpdatedBy(actor);
+        surveyMapper.updateById(survey);
+
+        actionLogger.log(surveyId, OpinionActionLogAction.PUBLISH,
+            from.name(), to.name(), ACTOR_ROLE_R01, actor,
+            "published at " + now);
+
+        log.info("[opinion] survey published: id={}", surveyId);
+
+        SurveyPublishVO vo = new SurveyPublishVO();
+        vo.setId(surveyId);
+        vo.setStatus(to.name());
+        vo.setStatusText(to.getText());
+        vo.setPublishAt(now);
         return vo;
     }
 

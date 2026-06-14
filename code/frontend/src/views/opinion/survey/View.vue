@@ -5,6 +5,7 @@ import { IconArrowLeft } from '@arco-design/web-vue/es/icon'
 import { statusColor } from '@/constants/opinion'
 import { getSurveyDetail } from '@/api/opinion/survey'
 import type { SurveyDetail } from '@/types/opinion/survey'
+import ProgressModal from './ProgressModal.vue'
 
 defineOptions({ name: 'OpinionSurveyView' })
 
@@ -15,6 +16,8 @@ const detail = ref<SurveyDetail | null>(null)
 const loading = ref(false)
 
 const surveyId = computed(() => Number(route.params.id))
+const progressVisible = ref(false)
+const progressMode = ref<'unit' | 'dept'>('unit')
 
 async function load() {
   loading.value = true
@@ -37,6 +40,15 @@ const groupedTargets = computed(() => {
 })
 
 onMounted(load)
+
+function showProgress(mode: 'unit' | 'dept') {
+  progressMode.value = mode
+  progressVisible.value = true
+}
+
+function goSummary() {
+  router.push({ name: 'opinion-survey-summary', params: { id: String(surveyId.value) } })
+}
 </script>
 
 <template>
@@ -63,6 +75,14 @@ onMounted(load)
           <a-descriptions-item label="发布时间">{{ detail.publishAt || '-' }}</a-descriptions-item>
           <a-descriptions-item label="创建时间">{{ detail.createdAt }}</a-descriptions-item>
         </a-descriptions>
+
+        <div class="action-bar">
+          <a-space>
+            <a-button type="outline" @click="showProgress('unit')">基层进度</a-button>
+            <a-button type="outline" @click="showProgress('dept')">专业进度</a-button>
+            <a-button type="primary" @click="goSummary">汇总发布</a-button>
+          </a-space>
+        </div>
 
         <div class="block">
           <h3>征集对象（{{ detail.targets.length }} 家）</h3>
@@ -111,6 +131,13 @@ onMounted(load)
       </div>
     </a-spin>
   </section>
+
+  <ProgressModal
+    v-model:visible="progressVisible"
+    :survey-id="surveyId"
+    :mode="progressMode"
+    @close="progressVisible = false"
+  />
 </template>
 
 <style scoped lang="less">
@@ -136,6 +163,10 @@ onMounted(load)
   }
 
   .info-block {
+    margin-bottom: 16px;
+  }
+
+  .action-bar {
     margin-bottom: 16px;
   }
 

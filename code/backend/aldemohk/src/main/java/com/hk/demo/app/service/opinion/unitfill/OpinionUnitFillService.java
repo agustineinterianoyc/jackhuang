@@ -7,6 +7,8 @@ import com.hk.demo.app.model.response.opinion.unitfill.UnitFillListItemVO;
 import com.hk.demo.app.model.response.opinion.unitfill.UnitFillSubmitVO;
 import com.hk.demo.data.pagination.PageResult;
 
+import jakarta.servlet.http.HttpServletResponse;
+
 /**
  * 基层填报服务（P02）。
  *
@@ -37,4 +39,9 @@ public interface OpinionUnitFillService {
      * API-204 基层填报提交。
      */
     UnitFillSubmitVO submit(Long taskId);
+
+    /**
+     * API-801 基层填报数据导出（CSV）。
+     */
+    void exportCsv(Long taskId, HttpServletResponse response);
 }

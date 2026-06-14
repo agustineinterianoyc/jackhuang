@@ -144,6 +144,10 @@ function goBack() {
   router.push({ name: 'opinion-unit-fill-list' })
 }
 
+function handleExport() {
+  window.open(`/api/opinion/unit-fill/${taskId.value}/export`)
+}
+
 function fillStatusColor(status: string): string {
   return OPINION_UNIT_FILL_STATUS_COLOR[status as keyof typeof OPINION_UNIT_FILL_STATUS_COLOR] ?? 'gray'
 }
@@ -163,6 +167,7 @@ onMounted(load)
         返回列表
       </a-button>
       <h2>基层单位意见征集</h2>
+      <a-button size="small" @click="handleExport">导出CSV</a-button>
     </header>
 
     <a-spin :loading="loading" tip="加载中">

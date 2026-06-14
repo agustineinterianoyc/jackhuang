@@ -17,6 +17,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import jakarta.servlet.http.HttpServletResponse;
+
 /**
  * P04 专业部门反馈控制器（专业绩效联络员 R04）。
  *
@@ -64,5 +66,13 @@ public class OpinionDeptFeedbackController {
     @PostMapping("/{taskId}/submit")
     public ApiResponse<DeptFeedbackSubmitVO> submit(@PathVariable("taskId") Long taskId) {
         return ApiResponseFactory.success(service.submit(taskId));
+    }
+
+    /**
+     * API-802 专业反馈数据导出（CSV）。
+     */
+    @GetMapping("/{taskId}/export")
+    public void export(@PathVariable("taskId") Long taskId, HttpServletResponse response) {
+        service.exportCsv(taskId, response);
     }
 }

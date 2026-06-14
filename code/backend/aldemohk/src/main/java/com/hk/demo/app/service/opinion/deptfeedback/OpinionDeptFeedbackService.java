@@ -7,6 +7,8 @@ import com.hk.demo.app.model.response.opinion.deptfeedback.DeptFeedbackListItemV
 import com.hk.demo.app.model.response.opinion.deptfeedback.DeptFeedbackSubmitVO;
 import com.hk.demo.data.pagination.PageResult;
 
+import jakarta.servlet.http.HttpServletResponse;
+
 /**
  * 专业反馈服务（R04 专业绩效联络员视角）。
  *
@@ -37,4 +39,9 @@ public interface OpinionDeptFeedbackService {
      * API-404 专业反馈提交。
      */
     DeptFeedbackSubmitVO submit(Long taskId);
+
+    /**
+     * API-802 专业反馈数据导出（CSV）。
+     */
+    void exportCsv(Long taskId, HttpServletResponse response);
 }

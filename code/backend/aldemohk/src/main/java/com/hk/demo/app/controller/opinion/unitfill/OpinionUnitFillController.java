@@ -17,6 +17,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import jakarta.servlet.http.HttpServletResponse;
+
 /**
  * P02 基层填报控制器（基层绩效管理员 R02）。
  *
@@ -64,5 +66,13 @@ public class OpinionUnitFillController {
     @PostMapping("/{taskId}/submit")
     public ApiResponse<UnitFillSubmitVO> submit(@PathVariable("taskId") Long taskId) {
         return ApiResponseFactory.success(service.submit(taskId));
+    }
+
+    /**
+     * API-801 基层填报数据导出（CSV）。
+     */
+    @GetMapping("/{taskId}/export")
+    public void export(@PathVariable("taskId") Long taskId, HttpServletResponse response) {
+        service.exportCsv(taskId, response);
     }
 }

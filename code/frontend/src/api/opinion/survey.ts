@@ -5,6 +5,7 @@
 import { del, get, post, put } from '@/utils/request'
 import type { PageResult } from '@/types/api'
 import type {
+  DeptProgressVO,
   DictEnum,
   DictUnit,
   SurveyDetail,
@@ -13,6 +14,7 @@ import type {
   SurveySaveRequest,
   SurveyStartResult,
   SurveyStatusResult,
+  UnitProgressVO,
   UploadResult,
 } from '@/types/opinion/survey'
 
@@ -61,4 +63,40 @@ export function uploadAttachment(formData: FormData) {
   return post<UploadResult>('/api/opinion/attachment/upload', formData, {
     headers: { 'Content-Type': 'multipart/form-data' },
   })
+}
+
+/** API-106 汇总征集。 */
+export function summarizeSurvey(id: number) {
+  return post<SurveyStatusResult>(`/api/opinion/survey/${id}/summarize`)
+}
+
+/** API-107 发布征集。 */
+export function publishSurvey(id: number) {
+  return post<SurveyStatusResult>(`/api/opinion/survey/${id}/publish`)
+}
+
+/** API-501 单位填报进度查询。 */
+export function queryUnitProgress(
+  surveyId: number,
+  params: { keyword?: string; submitStatus?: string; page: number; pageSize: number },
+) {
+  return post<PageResult<UnitProgressVO>>('/api/opinion/progress/units', { surveyId, ...params })
+}
+
+/** API-502 专业部门进度查询。 */
+export function queryDeptProgress(
+  surveyId: number,
+  params: { keyword?: string; submitStatus?: string; page: number; pageSize: number },
+) {
+  return post<PageResult<DeptProgressVO>>('/api/opinion/progress/depts', { surveyId, ...params })
+}
+
+/** API-601 一键提醒。 */
+export function batchRemind(surveyId: number, targetType: string) {
+  return post('/api/opinion/reminder/batch', { surveyId, targetType })
+}
+
+/** API-602 单个提醒。 */
+export function singleRemind(surveyId: number, targetType: string, targetId: number) {
+  return post('/api/opinion/reminder/single', { surveyId, targetType, targetId })
 }

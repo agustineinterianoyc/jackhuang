@@ -136,3 +136,39 @@ export interface UploadResult {
   fileName: string
   fileSize: number
 }
+
+/** 状态推进响应（与 SurveyStatusResult 对齐）。 */
+export interface SurveyStatus {
+  id: number
+  status: string
+  statusText: string
+  startAt: string | null
+  publishAt: string | null
+}
+
+/** 单位进度 VO。 */
+export interface UnitProgressVO {
+  taskId: number
+  unitId: number
+  unitName: string
+  unitType: string
+  unitTypeText: string
+  fillStatus: string
+  fillStatusText: string
+  auditStatus: string
+  auditStatusText: string
+  submittedAt: string | null
+}
+
+/** 专业部门进度 VO。 */
+export interface DeptProgressVO {
+  taskId: number
+  departmentId: number
+  departmentName: string
+  moduleCode: string
+  moduleName: string
+  submitStatus: string
+  submitStatusText: string
+  auditStatus: string
+  auditStatusText: string
+}

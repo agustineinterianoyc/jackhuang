@@ -40,6 +40,12 @@ const router = createRouter({
               meta: { title: '查看意见征集', hidden: true },
             },
             {
+              path: 'survey/:id/summary',
+              name: 'opinion-survey-summary',
+              component: () => import('@/views/opinion/survey/Summary.vue'),
+              meta: { title: '汇总发布', hidden: true },
+            },
+            {
               path: 'unit-fill',
               name: 'opinion-unit-fill-list',
               component: () => import('@/views/opinion/unit-fill/List.vue'),
